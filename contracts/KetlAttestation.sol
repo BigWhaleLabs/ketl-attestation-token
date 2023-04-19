@@ -10,7 +10,7 @@ import "./interfaces/IAttestationCheckerVerifier.sol";
 contract KetlAttestation is ERC1155, Ownable, Versioned, ERC2771Recipient {
   uint public attestorPublicKey;
   IAttestationCheckerVerifier public attestationCheckerVerifier;
-  mapping(uint => bool) public attestationMerkleRoots;
+  mapping(uint => uint) public attestationMerkleRoots;
   mapping(uint => bool) public nullifiers;
 
   constructor(
@@ -29,8 +29,11 @@ contract KetlAttestation is ERC1155, Ownable, Versioned, ERC2771Recipient {
     _setURI(_uri);
   }
 
-  function addAttestationMerkleRoot(uint _merkleRoot) public onlyOwner {
-    attestationMerkleRoots[_merkleRoot] = true;
+  function addAttestationMerkleRoot(
+    uint _id,
+    uint _merkleRoot
+  ) public onlyOwner {
+    attestationMerkleRoots[_id] = _merkleRoot;
   }
 
   // Mint only if the attestation is valid
@@ -46,7 +49,10 @@ contract KetlAttestation is ERC1155, Ownable, Versioned, ERC2771Recipient {
     uint _attestorPublicKey = input[2];
     uint _nullifier = input[3];
     // Check requirements
-    require(attestationMerkleRoots[_merkleRoot], "Merkle root is not valid");
+    require(
+      attestationMerkleRoots[_id] == _merkleRoot,
+      "Merkle root is not valid"
+    );
     require(nullifiers[_nullifier] == false, "Nullifier has already been used");
     require(
       _attestorPublicKey ==
