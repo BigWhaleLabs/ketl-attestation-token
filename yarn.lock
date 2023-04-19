@@ -32,14 +32,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@borodutch/smart-contract-starter@workspace:.":
+"@big-whale-labs/ketl-attestation-token@workspace:.":
   version: 0.0.0-use.local
-  resolution: "@borodutch/smart-contract-starter@workspace:."
+  resolution: "@big-whale-labs/ketl-attestation-token@workspace:."
   dependencies:
+    "@big-whale-labs/versioned-contract": ^1.0.2
     "@ethersproject/providers": ^5.7.2
     "@nomiclabs/hardhat-ethers": ^2.2.3
     "@nomiclabs/hardhat-etherscan": ^3.1.7
     "@nomiclabs/hardhat-waffle": ^2.0.5
+    "@opengsn/contracts": ^3.0.0-beta.6
     "@openzeppelin/contracts": ^4.8.3
     "@typechain/ethers-v5": ^10.2.0
     "@typechain/hardhat": ^6.1.5
@@ -74,6 +76,13 @@ __metadata:
     typescript: ^5.0.4
   languageName: unknown
   linkType: soft
+
+"@big-whale-labs/versioned-contract@npm:^1.0.2":
+  version: 1.0.2
+  resolution: "@big-whale-labs/versioned-contract@npm:1.0.2"
+  checksum: c6d6db47827a668fdec65068d76ca242ec5d3462c929519bfb7d611b10ad6d2c2f9d45dda868aa5542b98ec71287d7e7bd2cf34cca9ae18aa4ecae6a966420cd
+  languageName: node
+  linkType: hard
 
 "@chainsafe/as-sha256@npm:^0.3.1":
   version: 0.3.1
@@ -1490,7 +1499,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@openzeppelin/contracts@npm:^4.8.3":
+"@opengsn/contracts@npm:^3.0.0-beta.6":
+  version: 3.0.0-beta.7
+  resolution: "@opengsn/contracts@npm:3.0.0-beta.7"
+  dependencies:
+    "@openzeppelin/contracts": ^4.2.0
+  checksum: 34b15ae0648464c6dc2a10a53dc597740bcc943a1ba5b0f595de42474f6c0c3b775e90bbc3e31f2d59a9774125482d3870f7cf6b9b0b1b8ef3a8a881d255af90
+  languageName: node
+  linkType: hard
+
+"@openzeppelin/contracts@npm:^4.2.0, @openzeppelin/contracts@npm:^4.8.3":
   version: 4.8.3
   resolution: "@openzeppelin/contracts@npm:4.8.3"
   checksum: aea130d38d46840c5cbe3adbaa9a7ac645e4bd66ad3f3baf2fa78588c408d1a686170b3408c9e2e5e05530fba22ecdc00d7efb6b27852a8b29f91accbc0af255
