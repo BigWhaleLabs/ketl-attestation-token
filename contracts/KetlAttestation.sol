@@ -71,8 +71,8 @@ contract KetlAttestation is ERC1155, Ownable, Versioned, ERC2771Recipient {
     address operator,
     address from,
     address to,
-    uint256[] memory ids,
-    uint256[] memory amounts,
+    uint[] memory ids,
+    uint[] memory amounts,
     bytes memory data
   ) internal override {
     require(from == address(0), "This token is soulbound");
