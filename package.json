@@ -71,6 +71,8 @@
   },
   "packageManager": "yarn@3.5.0",
   "dependencies": {
-    "@big-whale-labs/versioned-contract": "^1.0.2"
+    "@big-whale-labs/constants": "^0.1.84",
+    "@big-whale-labs/versioned-contract": "^1.0.2",
+    "prompt": "^1.3.0"
   }
 }
