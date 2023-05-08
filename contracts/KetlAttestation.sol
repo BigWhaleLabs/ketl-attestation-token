@@ -55,8 +55,7 @@ contract KetlAttestation is ERC1155, Ownable, Versioned, ERC2771Recipient {
     );
     require(nullifiers[_nullifier] == false, "Nullifier has already been used");
     require(
-      _attestorPublicKey ==
-        uint(keccak256(abi.encodePacked(attestorPublicKey))),
+      _attestorPublicKey == attestorPublicKey,
       "Attestor public key is not valid"
     );
     require(

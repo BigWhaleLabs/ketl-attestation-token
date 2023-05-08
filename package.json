@@ -1,6 +1,6 @@
 {
   "name": "@big-whale-labs/ketl-attestation-token",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "ERC1155 token obtained from ketl SealCred attestations",
   "repository": {
     "type": "git",
@@ -71,6 +71,8 @@
   },
   "packageManager": "yarn@3.5.0",
   "dependencies": {
-    "@big-whale-labs/versioned-contract": "^1.0.2"
+    "@big-whale-labs/constants": "^0.1.84",
+    "@big-whale-labs/versioned-contract": "^1.0.2",
+    "prompt": "^1.3.0"
   }
 }
