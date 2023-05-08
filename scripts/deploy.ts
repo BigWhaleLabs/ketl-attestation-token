@@ -7,10 +7,16 @@ import { utils } from 'ethers'
 import { version } from '../package.json'
 import prompt from 'prompt'
 
-const regexes = {
-  ethereumAddress: /^0x[a-fA-F0-9]{40}$/,
-}
+const ethereumAddressRegex = /^0x[a-fA-F0-9]{40}$/
 const baseURI = 'https://metadata.sealcred.xyz'
+
+function getEtherscanUrl(chainName: string, chainId: number, address: string) {
+  const etherscanBaseUrl =
+    chainId === 80001 ? 'polygonscan.com' : 'etherscan.io'
+  return `https://${
+    !chainName.includes('mainnet') ? `${chainName}.` : ''
+  }${etherscanBaseUrl}/address/${address}`
+}
 
 async function main() {
   const [deployer] = await ethers.getSigners()
@@ -42,7 +48,7 @@ async function main() {
     properties: {
       verifierAddress: {
         required: true,
-        pattern: regexes.ethereumAddress,
+        pattern: ethereumAddressRegex,
         default: '0x4Acf6F64Df9Ccf7277D722963b7055f37C4b2525',
       },
       attestorPublicKey: {
@@ -51,7 +57,7 @@ async function main() {
       },
       forwarder: {
         required: true,
-        pattern: regexes.ethereumAddress,
+        pattern: ethereumAddressRegex,
         default: GSN_MUMBAI_FORWARDER_CONTRACT_ADDRESS,
       },
       baseURI: {
@@ -105,12 +111,7 @@ async function main() {
   // Print out the information
   console.log(`${contractName} deployed and verified on Etherscan!`)
   console.log('Contract address:', address)
-  console.log(
-    'Etherscan URL:',
-    `https://${chainName !== 'mainnet' ? `${chainName}.` : ''}${
-      chainId === 80001 ? 'polygonscan.com' : 'etherscan.io'
-    }/address/${address}`
-  )
+  console.log('Etherscan URL:', getEtherscanUrl(chainName, chainId, address))
 }
 
 main().catch((error) => {
