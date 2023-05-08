@@ -27,7 +27,8 @@
     "eth-lint": "yarn solhint 'contracts/**/*.sol'",
     "lint": "prettier --check . && eslint --max-warnings 0 --ext ts scripts test && yarn eth-lint",
     "prettify": "prettier --write .",
-    "release": "np"
+    "release": "np",
+    "prepublishOnly": "yarn build && yarn tsc"
   },
   "devDependencies": {
     "@ethersproject/providers": "^5.7.2",
