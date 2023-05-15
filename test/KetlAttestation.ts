@@ -9,12 +9,14 @@ describe('KetlAttestation contract tests', () => {
       const version = '0.0.1'
       const attestorPublicKey = 1234
       const attestationCheckerVerifier = ethers.constants.AddressZero
+      const forwared = '0x0000000000000000000000000000000000000000'
       const factory = await ethers.getContractFactory('KetlAttestation')
       const contract: KetlAttestation = await factory.deploy(
         uri,
         version,
         attestorPublicKey,
-        attestationCheckerVerifier
+        attestationCheckerVerifier,
+        forwared
       )
       expect(await contract.uri(0)).to.equal(
         'https://game.example/api/item/{id}.json'
