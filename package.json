@@ -15,7 +15,7 @@
   },
   "files": [
     "dist/typechain/**/*",
-    "dist/contracts/**/*"
+    "contracts/**/*"
   ],
   "main": "dist/typechain/index.js",
   "types": "dist/typechain/index.d.ts",
