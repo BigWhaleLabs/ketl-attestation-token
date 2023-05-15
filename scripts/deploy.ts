@@ -8,7 +8,6 @@ import { version } from '../package.json'
 import prompt from 'prompt'
 
 const ethereumAddressRegex = /^0x[a-fA-F0-9]{40}$/
-const baseURI = 'https://metadata.sealcred.xyz'
 
 function getEtherscanUrl(chainName: string, chainId: number, address: string) {
   const etherscanBaseUrl =
@@ -44,34 +43,36 @@ async function main() {
 
   console.log(`Deploying ${contractName}...`)
   const Contract = await ethers.getContractFactory(contractName)
-  const { verifierAddress, attestorPublicKey } = await prompt.get({
-    properties: {
-      verifierAddress: {
-        required: true,
-        pattern: ethereumAddressRegex,
-        default: '0x4Acf6F64Df9Ccf7277D722963b7055f37C4b2525',
+  const { verifierAddress, attestorPublicKey, forwarder, baseURI } =
+    await prompt.get({
+      properties: {
+        verifierAddress: {
+          required: true,
+          pattern: ethereumAddressRegex,
+          default: '0x4Acf6F64Df9Ccf7277D722963b7055f37C4b2525',
+        },
+        attestorPublicKey: {
+          required: true,
+          default: ATTESTOR_PUBLIC_KEY,
+        },
+        forwarder: {
+          required: true,
+          pattern: ethereumAddressRegex,
+          default: GSN_MUMBAI_FORWARDER_CONTRACT_ADDRESS,
+        },
+        baseURI: {
+          required: true,
+          default: 'https://metadata.sealcred.xyz',
+        },
       },
-      attestorPublicKey: {
-        required: true,
-        default: ATTESTOR_PUBLIC_KEY,
-      },
-      forwarder: {
-        required: true,
-        pattern: ethereumAddressRegex,
-        default: GSN_MUMBAI_FORWARDER_CONTRACT_ADDRESS,
-      },
-      baseURI: {
-        required: true,
-        default: baseURI,
-      },
-    },
-  })
+    })
 
   const contract = await Contract.deploy(
     baseURI,
     version,
     attestorPublicKey,
-    verifierAddress
+    verifierAddress,
+    forwarder
   )
 
   console.log(
@@ -99,6 +100,7 @@ async function main() {
         version,
         attestorPublicKey,
         verifierAddress,
+        forwarder,
       ],
     })
   } catch (err) {

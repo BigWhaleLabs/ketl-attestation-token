@@ -17,12 +17,14 @@ contract KetlAttestation is ERC1155, Ownable, Versioned, ERC2771Recipient {
     string memory _uri,
     string memory _version,
     uint _attestorPublicKey,
-    address _attestationCheckerVerifier
+    address _attestationCheckerVerifier,
+    address _forwarder
   ) ERC1155(_uri) Versioned(_version) {
     attestorPublicKey = _attestorPublicKey;
     attestationCheckerVerifier = IAttestationCheckerVerifier(
       _attestationCheckerVerifier
     );
+    _setTrustedForwarder(_forwarder);
   }
 
   function setUri(string memory _uri) public onlyOwner {
@@ -42,7 +44,7 @@ contract KetlAttestation is ERC1155, Ownable, Versioned, ERC2771Recipient {
     uint[2][2] memory b,
     uint[2] memory c,
     uint[4] memory input
-  ) public onlyOwner {
+  ) external {
     // Deconstruct input
     uint _id = input[0];
     uint _merkleRoot = input[1];
