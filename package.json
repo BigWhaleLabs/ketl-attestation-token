@@ -1,6 +1,6 @@
 {
   "name": "@big-whale-labs/ketl-attestation-token",
-  "version": "0.0.5-0",
+  "version": "0.0.5-1",
   "description": "ERC1155 token obtained from ketl SealCred attestations",
   "repository": {
     "type": "git",
@@ -14,7 +14,8 @@
     "yarn": false
   },
   "files": [
-    "dist/typechain/**/*"
+    "dist/typechain/**/*",
+    "contracts/**/*"
   ],
   "main": "dist/typechain/index.js",
   "types": "dist/typechain/index.d.ts",
