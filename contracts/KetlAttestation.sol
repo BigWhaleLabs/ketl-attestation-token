@@ -87,6 +87,8 @@ contract KetlAttestation is ERC1155, Ownable, Versioned, ERC2771Recipient {
   IPasswordCheckerVerifier public passwordCheckerVerifier;
   // Nullifiers
   mapping(uint => bool) public nullifiers;
+  // Legacy
+  bool public legacyMintLocked;
 
   constructor(
     string memory _uri,
@@ -138,7 +140,7 @@ contract KetlAttestation is ERC1155, Ownable, Versioned, ERC2771Recipient {
     uint attestationMerkleRoot = input[1];
     uint entanglement = input[2];
     uint attestationHash = input[3];
-    uint attestorPublicKey = input[4];
+    uint attestationPublicKey = input[4];
     // Check the proof
     require(
       attestationCheckerVerifier.verifyProof(a, b, c, input),
@@ -156,21 +158,19 @@ contract KetlAttestation is ERC1155, Ownable, Versioned, ERC2771Recipient {
     );
     // Check the attestation pubkey
     require(
-      attestorPublicKey == attestorPublicKey,
+      attestationPublicKey == attestorPublicKey,
       "Attestation public key is wrong"
     );
     // Save the entanglement fact
     attestationHashesEntangled[attestationHash] = true;
-    // Get the entanglement tree
-    IncrementalTreeData entanglementsTree = entanglementsTrees[attestationType];
     // Add the entanglement to the tree
-    entanglementsTree.insert(entanglement);
+    entanglementsTrees[attestationType].insert(entanglement);
     // Save the entanglement in the array
     entanglements[attestationType].push(entanglement);
     // Increment the entanglement count
     entanglementsCounts[attestationType].increment();
     // Register the entanglement root
-    bytes32 merkleRoot = bytes32(entanglementsTree.root);
+    bytes32 merkleRoot = bytes32(entanglementsTrees[attestationType].root);
     entanglementsRoots[attestationType][merkleRoot] = true;
   }
 
@@ -191,14 +191,32 @@ contract KetlAttestation is ERC1155, Ownable, Versioned, ERC2771Recipient {
     );
     require(!nullifiers[_nullifier], "Nullifier has already been used");
     require(
-      entanglementsRoots[_attestationType][_entanglementMerkleRoot],
+      entanglementsRoots[_attestationType][bytes32(_entanglementMerkleRoot)],
       "Entanglement merkle root is not valid"
     );
     // Save nullifier
     nullifiers[_nullifier] = true;
     // Mint token
-    _mint(_msgSender(), _id, 1, "");
+    _mint(_msgSender(), _attestationType, 1, "");
   }
+
+  // Legacy mint
+
+  function legacyBatchMint(
+    address[] memory _to,
+    uint[] memory _ids
+  ) external onlyOwner {
+    require(!legacyMintLocked, "Legacy mint is locked");
+    for (uint i = 0; i < _to.length; i++) {
+      _mint(_to[i], _ids[i], 1, "");
+    }
+  }
+
+  function lockLegacyMint() external onlyOwner {
+    legacyMintLocked = true;
+  }
+
+  // Make it soulbound
 
   function _beforeTokenTransfer(
     address operator,
@@ -211,6 +229,8 @@ contract KetlAttestation is ERC1155, Ownable, Versioned, ERC2771Recipient {
     require(from == address(0), "This token is soulbound");
     super._beforeTokenTransfer(operator, from, to, ids, amounts, data);
   }
+
+  // OpenGSN boilerplate
 
   function _msgSender()
     internal
