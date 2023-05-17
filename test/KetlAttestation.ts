@@ -8,14 +8,38 @@ describe('KetlAttestation contract tests', () => {
       const uri = 'https://game.example/api/item/{id}.json'
       const version = '0.0.1'
       const attestorPublicKey = 1234
-      const attestationCheckerVerifier = ethers.constants.AddressZero
-      const forwarder = '0x0000000000000000000000000000000000000000'
-      const factory = await ethers.getContractFactory('KetlAttestation')
+      const attestationCheckerVerifier =
+        '0x0000000000000000000000000000000000000000'
+      const passwordCheckerVerifier =
+        '0x0000000000000000000000000000000000000001'
+      const forwarder = '0x0000000000000000000000000000000000000002'
+
+      const PoseidonT3Factory = await ethers.getContractFactory('PoseidonT3')
+      const poseidonT3 = await PoseidonT3Factory.deploy()
+      await poseidonT3.deployed()
+
+      const IncrementalBinaryTreeFactory = await ethers.getContractFactory(
+        'IncrementalBinaryTree',
+        {
+          libraries: {
+            PoseidonT3: poseidonT3.address,
+          },
+        }
+      )
+      const incrementalBinaryTree = await IncrementalBinaryTreeFactory.deploy()
+      await incrementalBinaryTree.deployed()
+
+      const factory = await ethers.getContractFactory('KetlAttestation', {
+        libraries: {
+          IncrementalBinaryTree: incrementalBinaryTree.address,
+        },
+      })
       const contract: KetlAttestation = await factory.deploy(
         uri,
         version,
         attestorPublicKey,
         attestationCheckerVerifier,
+        passwordCheckerVerifier,
         forwarder
       )
       expect(await contract.uri(0)).to.equal(
@@ -25,6 +49,9 @@ describe('KetlAttestation contract tests', () => {
       expect(await contract.attestorPublicKey()).to.equal(attestorPublicKey)
       expect(await contract.attestationCheckerVerifier()).to.equal(
         attestationCheckerVerifier
+      )
+      expect(await contract.passwordCheckerVerifier()).to.equal(
+        passwordCheckerVerifier
       )
     })
   })
