@@ -14,7 +14,8 @@
     "yarn": false
   },
   "files": [
-    "dist/typechain/**/*"
+    "dist/typechain/**/*",
+    "contracts/**/*.sol"
   ],
   "main": "dist/typechain/index.js",
   "types": "dist/typechain/index.d.ts",
