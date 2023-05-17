@@ -59,16 +59,14 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-interface IAttestationCheckerVerifier {
+interface IPasswordCheckerVerifier {
   function verifyProof(
     uint[2] memory a,
     uint[2][2] memory b,
     uint[2] memory c,
     // attestation type
-    // attestation merkle root
-    // entanglement
-    // attestation hash
-    // attestor pubkey
-    uint[5] memory input
+    // nullifier
+    // entanglement merkle root
+    uint[3] memory input
   ) external view returns (bool r);
 }
