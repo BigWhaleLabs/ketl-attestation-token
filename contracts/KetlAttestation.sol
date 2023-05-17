@@ -73,6 +73,7 @@ contract KetlAttestation is ERC1155, Ownable, Versioned, ERC2771Recipient {
   using IncrementalBinaryTree for IncrementalTreeData;
 
   // Attestations
+  uint32 public currentTokenId;
   uint public attestorPublicKey;
   mapping(uint => uint) public attestationMerkleRoots;
   IAttestationCheckerVerifier public attestationCheckerVerifier;
@@ -112,7 +113,7 @@ contract KetlAttestation is ERC1155, Ownable, Versioned, ERC2771Recipient {
     _setURI(_uri);
   }
 
-  function addAttestationMerkleRoot(
+  function setAttestationMerkleRoot(
     uint _id,
     uint _merkleRoot,
     uint16 _minimumEntanglementCount
@@ -127,6 +128,10 @@ contract KetlAttestation is ERC1155, Ownable, Versioned, ERC2771Recipient {
     uint16 _minimumEntanglementCount
   ) public onlyOwner {
     minimumEntanglementCounts[_id] = _minimumEntanglementCount;
+  }
+
+  function setCurrentTokenId(uint32 _currentTokenId) public onlyOwner {
+    currentTokenId = _currentTokenId;
   }
 
   function registerEntanglement(
