@@ -43,35 +43,44 @@ async function main() {
 
   console.log(`Deploying ${contractName}...`)
   const Contract = await ethers.getContractFactory(contractName)
-  const { verifierAddress, attestorPublicKey, forwarder, baseURI } =
-    await prompt.get({
-      properties: {
-        verifierAddress: {
-          required: true,
-          pattern: ethereumAddressRegex,
-          default: '0x4Acf6F64Df9Ccf7277D722963b7055f37C4b2525',
-        },
-        attestorPublicKey: {
-          required: true,
-          default: ATTESTOR_PUBLIC_KEY,
-        },
-        forwarder: {
-          required: true,
-          pattern: ethereumAddressRegex,
-          default: GSN_MUMBAI_FORWARDER_CONTRACT_ADDRESS,
-        },
-        baseURI: {
-          required: true,
-          default: 'https://metadata.sealcred.xyz',
-        },
+  const {
+    attestationVerifierAddress,
+    passwordVerifierAddress,
+    attestorPublicKey,
+    forwarder,
+    baseURI,
+  } = await prompt.get({
+    properties: {
+      attestationVerifierAddress: {
+        required: true,
+        pattern: ethereumAddressRegex,
       },
-    })
+      passwordVerifierAddress: {
+        required: true,
+        pattern: ethereumAddressRegex,
+      },
+      attestorPublicKey: {
+        required: true,
+        default: ATTESTOR_PUBLIC_KEY,
+      },
+      forwarder: {
+        required: true,
+        pattern: ethereumAddressRegex,
+        default: GSN_MUMBAI_FORWARDER_CONTRACT_ADDRESS,
+      },
+      baseURI: {
+        required: true,
+        default: 'https://metadata.sealcred.xyz',
+      },
+    },
+  })
 
   const contract = await Contract.deploy(
     baseURI,
     version,
     attestorPublicKey,
-    verifierAddress,
+    attestationVerifierAddress,
+    passwordVerifierAddress,
     forwarder
   )
 
@@ -99,7 +108,8 @@ async function main() {
         baseURI,
         version,
         attestorPublicKey,
-        verifierAddress,
+        attestationVerifierAddress,
+        passwordVerifierAddress,
         forwarder,
       ],
     })
