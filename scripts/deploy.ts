@@ -5,6 +5,7 @@ import {
 import { ethers, run } from 'hardhat'
 import { utils } from 'ethers'
 import { version } from '../package.json'
+import getIncrementalTreeContract from '../test/getIncrementalTreeContract'
 import prompt from 'prompt'
 
 const ethereumAddressRegex = /^0x[a-fA-F0-9]{40}$/
@@ -15,6 +16,23 @@ function getEtherscanUrl(chainName: string, chainId: number, address: string) {
   return `https://${
     !chainName.includes('mainnet') ? `${chainName}.` : ''
   }${etherscanBaseUrl}/address/${address}`
+}
+
+async function deployIncrementalBinaryTreeLib() {
+  console.log(`Deploying incrementalBinaryTreeLib...`)
+  const address = await getIncrementalTreeContract()
+  console.log(`IncrementalBinaryTreeLib deployed to ${address}`)
+
+  await new Promise((resolve) => setTimeout(resolve, 30 * 1000))
+  try {
+    await run('verify:verify', {
+      address,
+    })
+  } catch (error) {
+    parseError(error)
+  }
+
+  return address
 }
 
 async function main() {
@@ -41,15 +59,7 @@ async function main() {
 
   const contractName = 'KetlAttestation'
 
-  console.log(`Deploying ${contractName}...`)
-  const Contract = await ethers.getContractFactory(contractName)
-  const {
-    attestationVerifierAddress,
-    passwordVerifierAddress,
-    attestorPublicKey,
-    forwarder,
-    baseURI,
-  } = await prompt.get({
+  const promptResult = await prompt.get({
     properties: {
       attestationVerifierAddress: {
         required: true,
@@ -72,6 +82,32 @@ async function main() {
         required: true,
         default: 'https://metadata.sealcred.xyz',
       },
+      incrementalBinaryTreeLibAddress: {
+        required: false,
+        pattern: ethereumAddressRegex,
+      },
+    },
+  })
+
+  const {
+    attestationVerifierAddress,
+    passwordVerifierAddress,
+    attestorPublicKey,
+    forwarder,
+    baseURI,
+  } = promptResult
+
+  let { incrementalBinaryTreeLibAddress } = promptResult
+
+  // Deploy new IncrementalBinaryTreeLib if address of exsiting is not provided
+  if (!incrementalBinaryTreeLibAddress) {
+    incrementalBinaryTreeLibAddress = await deployIncrementalBinaryTreeLib()
+  }
+
+  console.log(`Deploying ${contractName}...`)
+  const Contract = await ethers.getContractFactory(contractName, {
+    libraries: {
+      IncrementalBinaryTree: incrementalBinaryTreeLibAddress,
     },
   })
 
@@ -124,6 +160,13 @@ async function main() {
   console.log(`${contractName} deployed and verified on Etherscan!`)
   console.log('Contract address:', address)
   console.log('Etherscan URL:', getEtherscanUrl(chainName, chainId, address))
+}
+
+function parseError(error: Error | unknown) {
+  console.log(
+    'Error verifiying contract on Etherscan:',
+    error instanceof Error ? error.message : error
+  )
 }
 
 main().catch((error) => {
