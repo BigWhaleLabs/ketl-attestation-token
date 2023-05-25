@@ -199,6 +199,11 @@ contract KetlAttestation is ERC1155, Ownable, Versioned, ERC2771Recipient {
       entanglementsRoots[_attestationType][bytes32(_entanglementMerkleRoot)],
       "Entanglement merkle root is not valid"
     );
+    require(
+      minimumEntanglementCounts[_attestationType] <=
+        entanglementsCounts[_attestationType].current(),
+      "Not enough entanglements"
+    );
     // Save nullifier
     nullifiers[_nullifier] = true;
     // Mint token
