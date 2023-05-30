@@ -63,15 +63,18 @@ async function main() {
     properties: {
       attestationVerifierAddress: {
         required: true,
+        default: '0x3C62f429a8e9a42b5E6Cce09239266593DB3747f',
         pattern: ethereumAddressRegex,
       },
       passwordVerifierAddress: {
         required: true,
+        default: '0xBeD245BdAE228F006E60BE50aB2cA97282eD8a91',
         pattern: ethereumAddressRegex,
       },
       attestorPublicKey: {
         required: true,
-        default: ATTESTOR_PUBLIC_KEY,
+        default:
+          '4602787175697261409382197598473250464164410905837709881682647730492142844036',
       },
       forwarder: {
         required: true,
@@ -83,7 +86,8 @@ async function main() {
         default: 'https://metadata.sealcred.xyz',
       },
       incrementalBinaryTreeLibAddress: {
-        required: false,
+        required: true,
+        default: '0x96b8a618Bb30539D45164b6E0c046280E067b3B5',
         pattern: ethereumAddressRegex,
       },
     },
@@ -95,14 +99,8 @@ async function main() {
     attestorPublicKey,
     forwarder,
     baseURI,
+    incrementalBinaryTreeLibAddress,
   } = promptResult
-
-  let { incrementalBinaryTreeLibAddress } = promptResult
-
-  // Deploy new IncrementalBinaryTreeLib if address of exsiting is not provided
-  if (!incrementalBinaryTreeLibAddress) {
-    incrementalBinaryTreeLibAddress = await deployIncrementalBinaryTreeLib()
-  }
 
   console.log(`Deploying ${contractName}...`)
   const Contract = await ethers.getContractFactory(contractName, {

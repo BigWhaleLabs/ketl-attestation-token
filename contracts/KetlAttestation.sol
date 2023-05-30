@@ -84,7 +84,7 @@ contract KetlAttestation is ERC1155, Ownable, Versioned, ERC2771Recipient {
   mapping(uint => bool) private attestationHashesEntangled;
 
   mapping(uint => Counters.Counter) public entanglementsCounts;
-  mapping(uint => uint16) private minimumEntanglementCounts;
+  mapping(uint => uint16) public minimumEntanglementCounts;
   IPasswordCheckerVerifier public passwordCheckerVerifier;
   // Nullifiers
   mapping(uint => bool) public nullifiers;
