@@ -1,11 +1,9 @@
-import {
-  ATTESTOR_PUBLIC_KEY,
-  GSN_MUMBAI_FORWARDER_CONTRACT_ADDRESS,
-} from '@big-whale-labs/constants'
+import { GSN_MUMBAI_FORWARDER_CONTRACT_ADDRESS } from '@big-whale-labs/constants'
+import { KetlAllowMap__factory } from '@big-whale-labs/ketl-allow-map-contract'
+import { Provider } from '@ethersproject/providers'
 import { ethers, run } from 'hardhat'
 import { utils } from 'ethers'
 import { version } from '../package.json'
-import getIncrementalTreeContract from '../test/getIncrementalTreeContract'
 import prompt from 'prompt'
 
 const ethereumAddressRegex = /^0x[a-fA-F0-9]{40}$/
@@ -18,21 +16,23 @@ function getEtherscanUrl(chainName: string, chainId: number, address: string) {
   }${etherscanBaseUrl}/address/${address}`
 }
 
-async function deployIncrementalBinaryTreeLib() {
-  console.log(`Deploying incrementalBinaryTreeLib...`)
-  const address = await getIncrementalTreeContract()
-  console.log(`IncrementalBinaryTreeLib deployed to ${address}`)
+const KetlAllowMapInterface = new utils.Interface(KetlAllowMap__factory.abi)
 
-  await new Promise((resolve) => setTimeout(resolve, 30 * 1000))
-  try {
-    await run('verify:verify', {
-      address,
-    })
-  } catch (error) {
-    parseError(error)
-  }
+function parseAccountAddress(args: { data: string; topics: string[] }) {
+  return KetlAllowMapInterface.parseLog(args).args[0]
+}
 
-  return address
+async function getCountAddressAddedToAllowMap(
+  address: string,
+  provider: Provider
+) {
+  const founderContract = KetlAllowMap__factory.connect(address, provider)
+
+  const transactions = await founderContract.queryFilter(
+    founderContract.filters.AddressAddedToAllowMap()
+  )
+
+  return transactions.map(parseAccountAddress)
 }
 
 async function main() {
@@ -158,13 +158,29 @@ async function main() {
   console.log(`${contractName} deployed and verified on Etherscan!`)
   console.log('Contract address:', address)
   console.log('Etherscan URL:', getEtherscanUrl(chainName, chainId, address))
-}
 
-function parseError(error: Error | unknown) {
-  console.log(
-    'Error verifiying contract on Etherscan:',
-    error instanceof Error ? error.message : error
+  console.log('Import old founders accounts...')
+  const founders = await getCountAddressAddedToAllowMap(
+    '0x91002bd44b9620866693fd8e03438e69e01563ee',
+    provider
   )
+  await contract.legacyBatchMint(
+    founders,
+    founders.map(() => 2)
+  )
+
+  console.log('Import old vs accounts...')
+  const vc = await getCountAddressAddedToAllowMap(
+    '0xe8c7754340b9f0efe49dfe0f9a47f8f137f70477',
+    provider
+  )
+  await contract.legacyBatchMint(
+    vc,
+    vc.map(() => 3)
+  )
+
+  await contract.lockLegacyMint()
+  console.log('Complete! Lock legacy mint')
 }
 
 main().catch((error) => {
