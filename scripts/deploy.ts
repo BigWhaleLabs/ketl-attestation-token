@@ -26,10 +26,10 @@ async function getCountAddressAddedToAllowMap(
   address: string,
   provider: Provider
 ) {
-  const founderContract = KetlAllowMap__factory.connect(address, provider)
+  const contract = KetlAllowMap__factory.connect(address, provider)
 
-  const transactions = await founderContract.queryFilter(
-    founderContract.filters.AddressAddedToAllowMap()
+  const transactions = await contract.queryFilter(
+    contract.filters.AddressAddedToAllowMap()
   )
 
   return transactions.map(parseAccountAddress)
