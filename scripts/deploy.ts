@@ -1,4 +1,10 @@
-import { GSN_MUMBAI_FORWARDER_CONTRACT_ADDRESS } from '@big-whale-labs/constants'
+import {
+  ATTESTATION_VERIFIER_CONTRACT_ADDRESS,
+  ATTESTOR_EDDSA_PUBLIC_KEY,
+  GSN_MUMBAI_FORWARDER_CONTRACT_ADDRESS,
+  INCREMENTAL_BINARY_TREE_ADDRESS,
+  PASSWORD_VERIFIER_CONTRACT_ADDRESS,
+} from '@big-whale-labs/constants'
 import { KetlAllowMap__factory } from '@big-whale-labs/ketl-allow-map-contract'
 import { Provider } from '@ethersproject/providers'
 import { ethers, run } from 'hardhat'
@@ -63,18 +69,17 @@ async function main() {
     properties: {
       attestationVerifierAddress: {
         required: true,
-        default: '0x3C62f429a8e9a42b5E6Cce09239266593DB3747f',
+        default: ATTESTATION_VERIFIER_CONTRACT_ADDRESS,
         pattern: ethereumAddressRegex,
       },
       passwordVerifierAddress: {
         required: true,
-        default: '0xBeD245BdAE228F006E60BE50aB2cA97282eD8a91',
+        default: PASSWORD_VERIFIER_CONTRACT_ADDRESS,
         pattern: ethereumAddressRegex,
       },
       attestorPublicKey: {
         required: true,
-        default:
-          '4602787175697261409382197598473250464164410905837709881682647730492142844036',
+        default: ATTESTOR_EDDSA_PUBLIC_KEY,
       },
       forwarder: {
         required: true,
@@ -87,8 +92,13 @@ async function main() {
       },
       incrementalBinaryTreeLibAddress: {
         required: true,
-        default: '0x96b8a618Bb30539D45164b6E0c046280E067b3B5',
+        default: INCREMENTAL_BINARY_TREE_ADDRESS,
         pattern: ethereumAddressRegex,
+      },
+      shouldTransferOldAccountsl: {
+        type: 'boolean',
+        required: true,
+        default: true,
       },
     },
   })
@@ -100,6 +110,7 @@ async function main() {
     forwarder,
     baseURI,
     incrementalBinaryTreeLibAddress,
+    shouldTransferOldAccountsl,
   } = promptResult
 
   console.log(`Deploying ${contractName}...`)
@@ -159,28 +170,29 @@ async function main() {
   console.log('Contract address:', address)
   console.log('Etherscan URL:', getEtherscanUrl(chainName, chainId, address))
 
-  console.log('Import old founders accounts...')
-  const founders = await getCountAddressAddedToAllowMap(
-    '0x91002bd44b9620866693fd8e03438e69e01563ee',
-    provider
-  )
-  await contract.legacyBatchMint(
-    founders,
-    founders.map(() => 2)
-  )
+  if (shouldTransferOldAccountsl) {
+    console.log('Import old founders accounts...')
+    const oldFounderContract = '0x91002bd44b9620866693fd8e03438e69e01563ee'
+    const founders = await getCountAddressAddedToAllowMap(
+      oldFounderContract,
+      provider
+    )
+    await contract.legacyBatchMint(
+      founders,
+      founders.map(() => 2)
+    )
 
-  console.log('Import old vs accounts...')
-  const vc = await getCountAddressAddedToAllowMap(
-    '0xe8c7754340b9f0efe49dfe0f9a47f8f137f70477',
-    provider
-  )
-  await contract.legacyBatchMint(
-    vc,
-    vc.map(() => 3)
-  )
+    console.log('Import old VS accounts...')
+    const oldVcContract = '0xe8c7754340b9f0efe49dfe0f9a47f8f137f70477'
+    const vc = await getCountAddressAddedToAllowMap(oldVcContract, provider)
+    await contract.legacyBatchMint(
+      vc,
+      vc.map(() => 3)
+    )
 
-  await contract.lockLegacyMint()
-  console.log('Complete! Lock legacy mint')
+    await contract.lockLegacyMint()
+    console.log('Complete! Lock legacy mint')
+  }
 }
 
 main().catch((error) => {
