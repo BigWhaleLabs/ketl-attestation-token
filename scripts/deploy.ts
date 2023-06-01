@@ -1,11 +1,15 @@
 import {
-  ATTESTOR_PUBLIC_KEY,
+  ATTESTATION_VERIFIER_CONTRACT_ADDRESS,
+  ATTESTOR_EDDSA_PUBLIC_KEY,
   GSN_MUMBAI_FORWARDER_CONTRACT_ADDRESS,
+  INCREMENTAL_BINARY_TREE_ADDRESS,
+  PASSWORD_VERIFIER_CONTRACT_ADDRESS,
 } from '@big-whale-labs/constants'
+import { KetlAllowMap__factory } from '@big-whale-labs/ketl-allow-map-contract'
+import { Provider } from '@ethersproject/providers'
 import { ethers, run } from 'hardhat'
 import { utils } from 'ethers'
 import { version } from '../package.json'
-import getIncrementalTreeContract from '../test/getIncrementalTreeContract'
 import prompt from 'prompt'
 
 const ethereumAddressRegex = /^0x[a-fA-F0-9]{40}$/
@@ -18,21 +22,23 @@ function getEtherscanUrl(chainName: string, chainId: number, address: string) {
   }${etherscanBaseUrl}/address/${address}`
 }
 
-async function deployIncrementalBinaryTreeLib() {
-  console.log(`Deploying incrementalBinaryTreeLib...`)
-  const address = await getIncrementalTreeContract()
-  console.log(`IncrementalBinaryTreeLib deployed to ${address}`)
+const KetlAllowMapInterface = new utils.Interface(KetlAllowMap__factory.abi)
 
-  await new Promise((resolve) => setTimeout(resolve, 30 * 1000))
-  try {
-    await run('verify:verify', {
-      address,
-    })
-  } catch (error) {
-    parseError(error)
-  }
+function parseAccountAddress(args: { data: string; topics: string[] }) {
+  return KetlAllowMapInterface.parseLog(args).args[0]
+}
 
-  return address
+async function getCountAddressAddedToAllowMap(
+  address: string,
+  provider: Provider
+) {
+  const contract = KetlAllowMap__factory.connect(address, provider)
+
+  const transactions = await contract.queryFilter(
+    contract.filters.AddressAddedToAllowMap()
+  )
+
+  return transactions.map(parseAccountAddress)
 }
 
 async function main() {
@@ -63,15 +69,17 @@ async function main() {
     properties: {
       attestationVerifierAddress: {
         required: true,
+        default: ATTESTATION_VERIFIER_CONTRACT_ADDRESS,
         pattern: ethereumAddressRegex,
       },
       passwordVerifierAddress: {
         required: true,
+        default: PASSWORD_VERIFIER_CONTRACT_ADDRESS,
         pattern: ethereumAddressRegex,
       },
       attestorPublicKey: {
         required: true,
-        default: ATTESTOR_PUBLIC_KEY,
+        default: ATTESTOR_EDDSA_PUBLIC_KEY,
       },
       forwarder: {
         required: true,
@@ -83,8 +91,14 @@ async function main() {
         default: 'https://metadata.sealcred.xyz',
       },
       incrementalBinaryTreeLibAddress: {
-        required: false,
+        required: true,
+        default: INCREMENTAL_BINARY_TREE_ADDRESS,
         pattern: ethereumAddressRegex,
+      },
+      shouldTransferOldAccountsl: {
+        type: 'boolean',
+        required: true,
+        default: true,
       },
     },
   })
@@ -95,14 +109,9 @@ async function main() {
     attestorPublicKey,
     forwarder,
     baseURI,
+    incrementalBinaryTreeLibAddress,
+    shouldTransferOldAccountsl,
   } = promptResult
-
-  let { incrementalBinaryTreeLibAddress } = promptResult
-
-  // Deploy new IncrementalBinaryTreeLib if address of exsiting is not provided
-  if (!incrementalBinaryTreeLibAddress) {
-    incrementalBinaryTreeLibAddress = await deployIncrementalBinaryTreeLib()
-  }
 
   console.log(`Deploying ${contractName}...`)
   const Contract = await ethers.getContractFactory(contractName, {
@@ -160,13 +169,30 @@ async function main() {
   console.log(`${contractName} deployed and verified on Etherscan!`)
   console.log('Contract address:', address)
   console.log('Etherscan URL:', getEtherscanUrl(chainName, chainId, address))
-}
 
-function parseError(error: Error | unknown) {
-  console.log(
-    'Error verifiying contract on Etherscan:',
-    error instanceof Error ? error.message : error
-  )
+  if (shouldTransferOldAccountsl) {
+    console.log('Import old founders accounts...')
+    const oldFounderContract = '0x91002bd44b9620866693fd8e03438e69e01563ee'
+    const founders = await getCountAddressAddedToAllowMap(
+      oldFounderContract,
+      provider
+    )
+    await contract.legacyBatchMint(
+      founders,
+      founders.map(() => 2)
+    )
+
+    console.log('Import old VS accounts...')
+    const oldVcContract = '0xe8c7754340b9f0efe49dfe0f9a47f8f137f70477'
+    const vc = await getCountAddressAddedToAllowMap(oldVcContract, provider)
+    await contract.legacyBatchMint(
+      vc,
+      vc.map(() => 3)
+    )
+
+    await contract.lockLegacyMint()
+    console.log('Complete! Lock legacy mint')
+  }
 }
 
 main().catch((error) => {

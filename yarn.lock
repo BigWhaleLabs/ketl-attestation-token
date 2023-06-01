@@ -32,10 +32,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@big-whale-labs/constants@npm:^0.1.85":
-  version: 0.1.85
-  resolution: "@big-whale-labs/constants@npm:0.1.85"
-  checksum: ff7f61f8c4779f1f1ccdc62f7639e32f5c3ac5c45209905c0598e0feca10fca55cdb620e531371eb7ba7721f4b9e211d8e6848190097949266b9db14f010c069
+"@big-whale-labs/constants@npm:^0.2.0":
+  version: 0.2.0
+  resolution: "@big-whale-labs/constants@npm:0.2.0"
+  checksum: 9c5af51516c94274962d9ad9938745a2547457f0ec73f6c2bd93d253337fdeb2e9813e6aac7d1053fddc990b2cc032c65fbb141dfb451d8a8f15c6c1da299d7e
+  languageName: node
+  linkType: hard
+
+"@big-whale-labs/ketl-allow-map-contract@npm:^0.0.3":
+  version: 0.0.3
+  resolution: "@big-whale-labs/ketl-allow-map-contract@npm:0.0.3"
+  checksum: 5b547e98d189a99b9b2cf3b0cb53c173e75458bc6f54142dcadb6cc9478f4bf7328510c4cfe121bd1ae0e6f69714258413ecc61d2b7ef696ed079df58a0397da
   languageName: node
   linkType: hard
 
@@ -43,7 +50,8 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@big-whale-labs/ketl-attestation-token@workspace:."
   dependencies:
-    "@big-whale-labs/constants": ^0.1.85
+    "@big-whale-labs/constants": ^0.2.0
+    "@big-whale-labs/ketl-allow-map-contract": ^0.0.3
     "@big-whale-labs/versioned-contract": ^1.0.2
     "@ethersproject/providers": ^5.7.2
     "@nomiclabs/hardhat-ethers": ^2.2.3
