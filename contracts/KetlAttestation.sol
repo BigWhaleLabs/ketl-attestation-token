@@ -91,6 +91,9 @@ contract KetlAttestation is ERC1155, Ownable, Versioned, ERC2771Recipient {
   // Legacy
   bool public legacyMintLocked;
 
+  // Events
+  event EntanglementRegistered(uint attestationType, uint entanglement);
+
   constructor(
     string memory _uri,
     string memory _version,
@@ -177,6 +180,9 @@ contract KetlAttestation is ERC1155, Ownable, Versioned, ERC2771Recipient {
     // Register the entanglement root
     bytes32 merkleRoot = bytes32(entanglementsTrees[attestationType].root);
     entanglementsRoots[attestationType][merkleRoot] = true;
+
+    // Emit the EntanglementRegistered event
+    emit EntanglementRegistered(attestationType, entanglement);
   }
 
   function mint(
