@@ -81,7 +81,7 @@ contract KetlAttestation is ERC1155, Ownable, Versioned, ERC2771Recipient {
   mapping(uint => IncrementalTreeData) public entanglementsTrees;
   mapping(uint => uint[]) public entanglements;
   mapping(uint => mapping(bytes32 => bool)) public entanglementsRoots;
-  mapping(uint => bool) private attestationHashesEntangled;
+  mapping(uint => bool) public attestationHashesEntangled;
 
   mapping(uint => Counters.Counter) public entanglementsCounts;
   mapping(uint => uint16) public minimumEntanglementCounts;
