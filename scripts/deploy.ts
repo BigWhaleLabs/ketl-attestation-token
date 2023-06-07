@@ -1,6 +1,6 @@
 import {
   ATTESTATION_VERIFIER_CONTRACT_ADDRESS,
-  ATTESTOR_EDDSA_PUBLIC_KEY,
+  ATTESTOR_PUBLIC_KEY,
   GSN_MUMBAI_FORWARDER_CONTRACT_ADDRESS,
   INCREMENTAL_BINARY_TREE_ADDRESS,
   PASSWORD_VERIFIER_CONTRACT_ADDRESS,
@@ -79,7 +79,7 @@ async function main() {
       },
       attestorPublicKey: {
         required: true,
-        default: ATTESTOR_EDDSA_PUBLIC_KEY,
+        default: ATTESTOR_PUBLIC_KEY,
       },
       forwarder: {
         required: true,
