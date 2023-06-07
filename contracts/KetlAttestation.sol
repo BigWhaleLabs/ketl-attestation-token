@@ -80,7 +80,7 @@ contract KetlAttestation is ERC1155, Ownable, Versioned, ERC2771Recipient {
   // Entanglements
   mapping(uint => IncrementalTreeData) public entanglementsTrees;
   mapping(uint => uint[]) public entanglements;
-  mapping(uint => mapping(bytes32 => bool)) public entanglementsRoots;
+  mapping(uint => mapping(uint => bool)) public entanglementsRoots;
   mapping(uint => bool) public attestationHashesEntangled;
 
   mapping(uint => Counters.Counter) public entanglementsCounts;
@@ -178,8 +178,9 @@ contract KetlAttestation is ERC1155, Ownable, Versioned, ERC2771Recipient {
     // Increment the entanglement count
     entanglementsCounts[attestationType].increment();
     // Register the entanglement root
-    bytes32 merkleRoot = bytes32(entanglementsTrees[attestationType].root);
-    entanglementsRoots[attestationType][merkleRoot] = true;
+    entanglementsRoots[attestationType][
+      entanglementsTrees[attestationType].root
+    ] = true;
 
     // Emit the EntanglementRegistered event
     emit EntanglementRegistered(attestationType, entanglement);
@@ -202,7 +203,7 @@ contract KetlAttestation is ERC1155, Ownable, Versioned, ERC2771Recipient {
     );
     require(!nullifiers[_nullifier], "Nullifier has already been used");
     require(
-      entanglementsRoots[_attestationType][bytes32(_entanglementMerkleRoot)],
+      entanglementsRoots[_attestationType][_entanglementMerkleRoot],
       "Entanglement merkle root is not valid"
     );
     require(
