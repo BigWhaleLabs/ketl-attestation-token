@@ -22,6 +22,7 @@
   "scripts": {
     "build": "yarn clean-cache && yarn hardhat compile",
     "clean-cache": "yarn hardhat clean",
+    "update-merkle-root": "yarn hardhat run --network deploy scripts/update-merkle-root.ts",
     "test": "NODE_ENV=test yarn hardhat test",
     "coverage": "yarn hardhat compile --force && node --max_old_space_size=6144 node_modules/.bin/hardhat coverage --testfiles 'test/**/*.ts' --show-stack-traces",
     "deploy": "yarn hardhat run --network deploy scripts/deploy.ts",
@@ -75,11 +76,12 @@
   },
   "packageManager": "yarn@3.5.1",
   "dependencies": {
-    "@big-whale-labs/constants": "^0.2.0",
+    "@big-whale-labs/constants": "^0.2.10",
     "@big-whale-labs/ketl-allow-map-contract": "^0.0.3",
     "@big-whale-labs/versioned-contract": "^1.0.2",
     "@zk-kit/incremental-merkle-tree": "^1.1.0",
     "@zk-kit/incremental-merkle-tree.sol": "^1.7.0",
+    "n-readlines": "^1.0.1",
     "prompt": "^1.3.0"
   }
 }
