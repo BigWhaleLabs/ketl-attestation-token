@@ -10,8 +10,8 @@ import { KetlAttestation__factory } from '../typechain'
 import { cwd } from 'process'
 import { ethers } from 'hardhat'
 import { resolve } from 'path'
+import LineByLine from 'n-readlines'
 import getMerkleTreeProof from '../utils/getMerkleTreeInputs'
-import lineByLine from 'n-readlines'
 import poseidonHash from '../utils/poseidonHash'
 import prompt from 'prompt'
 
@@ -51,7 +51,7 @@ function generateHashByRecord(
     case Verification.twitter:
       if (isNaN(parseInt(content, 10)))
         throw new Error(`Invalid number: ${content}!`)
-      return hashFunc([VerificationType.twitter, parseInt(content, 10)])
+      return hashFunc([VerificationType.twitter, content])
     case Verification.AlumNFT:
       if (!ethereumAddressRegex.test(content.toLowerCase()))
         throw new Error(`Invalid ethereum address: ${content}!`)
@@ -71,7 +71,7 @@ function generateHashByRecord(
         hexlifyString(KETL_BWL_NFT_CONTRACT),
       ])
     default:
-      throw new Error(`Unknow verification type: ${verification}, str: ${str}!`)
+      throw new Error(`Unknow verification type: ${verification}!`)
   }
 }
 
@@ -109,7 +109,6 @@ async function main() {
 
   const { attestationAddress } = promptResult
 
-  console.log(`Updating contract: ${attestationAddress}`)
   const ketlAttestation = KetlAttestation__factory.connect(
     attestationAddress,
     deployer
@@ -120,15 +119,16 @@ async function main() {
 
   for (const id of ids) {
     const filePath = resolve(cwd(), 'merkleTrees', `${id}.txt`)
-    const liner = new lineByLine(filePath)
+    const liner = new LineByLine(filePath)
 
     let line
     const attestationHashes = [] as string[]
     while ((line = liner.next())) {
-      const record = line.toString('utf-8')
+      const record = line.toString('utf-8').trim()
       try {
+        if (/^#/.test(record) || !record) continue
         const attestationHash = generateHashByRecord(record, hashFunc)
-        attestationHashes.push(attestationHash)
+        if (attestationHash) attestationHashes.push(attestationHash)
       } catch (e) {
         console.error(e, record)
       }
