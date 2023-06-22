@@ -11,15 +11,13 @@ import { cwd } from 'process'
 import { ethers } from 'hardhat'
 import { resolve } from 'path'
 import LineByLine from 'n-readlines'
+import balanceVerification from '../utils/balanceVerification'
+import emailVerificaiton from '../utils/emailVerificaiton'
 import getMerkleTreeProof from '../utils/getMerkleTreeInputs'
 import poseidonHash from '../utils/poseidonHash'
 import prompt from 'prompt'
-
-const ethereumAddressRegex = /^0x[a-fA-F0-9]{40}$/
-
-function hexlifyString(str: string) {
-  return utils.hexlify(utils.toUtf8Bytes(str))
-}
+import tokenVerificaiton from '../utils/tokenVerificaiton'
+import twitterVerification from '../utils/twitterVerification'
 
 enum Verification {
   email = 'email',
@@ -29,13 +27,6 @@ enum Verification {
   token = 'token',
 }
 
-enum VerificationType {
-  email = '0',
-  twitter = '1',
-  balance = '2',
-  token = '3',
-}
-
 function generateHashByRecord(
   str: string,
   hashFunc: (message: (number | string | BigNumber)[] | Uint8Array) => string
@@ -43,33 +34,15 @@ function generateHashByRecord(
   const [verification, content] = str.split(':')
   switch (verification) {
     case Verification.token:
-      if (isNaN(parseInt(content, 10)))
-        throw new Error(`Invalid number: ${content}!`)
-      return hashFunc([hexlifyString(content)])
+      return tokenVerificaiton(hashFunc, content)
     case Verification.email:
-      return hashFunc([VerificationType.email, hexlifyString(content)])
+      return emailVerificaiton(hashFunc, content)
     case Verification.twitter:
-      if (isNaN(parseInt(content, 10)))
-        throw new Error(`Invalid number: ${content}!`)
-      return hashFunc([VerificationType.twitter, content])
+      return twitterVerification(hashFunc, content)
     case Verification.AlumNFT:
-      if (!ethereumAddressRegex.test(content.toLowerCase()))
-        throw new Error(`Invalid ethereum address: ${content}!`)
-      return hashFunc([
-        VerificationType.balance,
-        hexlifyString(content.toLowerCase()),
-        1,
-        hexlifyString(YC_ALUM_NFT_CONTRACT),
-      ])
+      return balanceVerification(hashFunc, content, YC_ALUM_NFT_CONTRACT)
     case Verification.BWLNFT:
-      if (!ethereumAddressRegex.test(content.toLowerCase()))
-        throw new Error(`Invalid ethereum address: ${content}!`)
-      return hashFunc([
-        VerificationType.balance,
-        hexlifyString(content.toLowerCase()),
-        1,
-        hexlifyString(KETL_BWL_NFT_CONTRACT),
-      ])
+      return balanceVerification(hashFunc, content, KETL_BWL_NFT_CONTRACT)
     default:
       throw new Error(`Unknow verification type: ${verification}!`)
   }
@@ -95,19 +68,17 @@ async function main() {
     },
   })
 
-  const promptResult = await prompt.get({
+  const { attestationAddress } = await prompt.get({
     properties: {
       attestationAddress: {
         required: true,
         default: promptEnv.isProduction
           ? PROD_KETL_ATTESTATION_CONTRACT
           : DEV_KETL_ATTESTATION_CONTRACT,
-        pattern: ethereumAddressRegex,
+        conform: utils.isAddress,
       },
     },
   })
-
-  const { attestationAddress } = promptResult
 
   const ketlAttestation = KetlAttestation__factory.connect(
     attestationAddress,
