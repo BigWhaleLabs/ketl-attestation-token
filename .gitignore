@@ -7,7 +7,7 @@ typechain
 dist
 
 # Merkle Trees files
-merkleTrees
+merkleTrees/*
 !merkleTrees/.gitkeep
 hashes
 
