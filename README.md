@@ -6,8 +6,14 @@ ERC1155 token obtained from ketl SealCred attestations
 
 1. Clone the repository with `git clone git@github.com:BigWhaleLabs/ketl-attestation-token`
 2. Install the dependencies with `yarn`
-3. Add environment variables to your `.env` file
-4. Run the scripts below
+3. Compile the contract with `yarn build`
+4. Find inputs in 1password and download them
+   4.1. Find "Ketl members" - 0.txt
+   4.2. Find "YC" - 1.txt
+   4.3. Find "Founders" - 2.txt
+   4.4. Find "VC" - 3.txt
+5. Add `0.txt, 1.txt, 2.txt, 3.txt` files into `merkleTrees/` folder
+6. Run the command `yarn update-merkle-root`, follow instructions in the prompt
 
 ## Environment variables
 
