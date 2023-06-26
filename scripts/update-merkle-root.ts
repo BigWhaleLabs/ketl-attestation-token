@@ -12,11 +12,11 @@ import { ethers } from 'hardhat'
 import { resolve } from 'path'
 import LineByLine from 'n-readlines'
 import balanceVerification from '../utils/balanceVerification'
-import emailVerificaiton from '../utils/emailVerificaiton'
+import emailVerification from '../utils/emailVerification'
 import getMerkleTreeProof from '../utils/getMerkleTreeInputs'
 import poseidonHash from '../utils/poseidonHash'
 import prompt from 'prompt'
-import tokenVerificaiton from '../utils/tokenVerificaiton'
+import tokenVerification from '../utils/tokenVerification'
 import twitterVerification from '../utils/twitterVerification'
 
 enum Verification {
@@ -34,9 +34,9 @@ function generateHashByRecord(
   const [verification, content] = str.split(':')
   switch (verification) {
     case Verification.token:
-      return tokenVerificaiton(hashFunc, content)
+      return tokenVerification(hashFunc, content)
     case Verification.email:
-      return emailVerificaiton(hashFunc, content)
+      return emailVerification(hashFunc, content)
     case Verification.twitter:
       return twitterVerification(hashFunc, content)
     case Verification.AlumNFT:
@@ -44,7 +44,7 @@ function generateHashByRecord(
     case Verification.BWLNFT:
       return balanceVerification(hashFunc, content, KETL_BWL_NFT_CONTRACT)
     default:
-      throw new Error(`Unknow verification type: ${verification}!`)
+      throw new Error(`Unknown verification type: ${verification}!`)
   }
 }
 
@@ -116,7 +116,7 @@ async function main() {
       continue
     }
 
-    const merkeTreeProof = getMerkleTreeProof(
+    const merkleTreeProof = getMerkleTreeProof(
       20,
       hashFunc,
       attestationHashes[0],
@@ -136,10 +136,10 @@ async function main() {
       },
     })
 
-    console.log(`Update merkleRoot with ${merkeTreeProof.root} for ${id}`)
+    console.log(`Update merkleRoot with ${merkleTreeProof.root} for ${id}`)
     await ketlAttestation.setAttestationMerkleRoot(
       id,
-      merkeTreeProof.root,
+      merkleTreeProof.root,
       promptMinimumEntanglementCounts.minimumEntanglementCounts
     )
   }
