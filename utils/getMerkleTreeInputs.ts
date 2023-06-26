@@ -1,6 +1,6 @@
 import { IncrementalMerkleTree } from '@zk-kit/incremental-merkle-tree'
 
-export default function getMerkleTreeProof(
+export default function (
   depth: number,
   hashFunc: (values: string[]) => string | number | bigint | boolean,
   commitment: bigint | string,

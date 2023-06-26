@@ -9,7 +9,6 @@ dist
 # Merkle Trees files
 merkleTrees/*
 !merkleTrees/.gitkeep
-hashes
 
 # Hardhat files
 cache

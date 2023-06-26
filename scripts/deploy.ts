@@ -18,7 +18,7 @@ function getEtherscanUrl(chainName: string, chainId: number, address: string) {
   const etherscanBaseUrl =
     chainId === 80001 ? 'polygonscan.com' : 'etherscan.io'
   return `https://${
-    !chainName.includes('mainnet') ? `${chainName}.` : ''
+    chainName.includes('mainnet') ? '' : `${chainName}.`
   }${etherscanBaseUrl}/address/${address}`
 }
 
@@ -95,7 +95,7 @@ async function main() {
         default: INCREMENTAL_BINARY_TREE_ADDRESS,
         pattern: ethereumAddressRegex,
       },
-      shouldTransferOldAccountsl: {
+      shouldTransferOldAccounts: {
         type: 'boolean',
         required: true,
         default: true,
@@ -110,7 +110,7 @@ async function main() {
     forwarder,
     baseURI,
     incrementalBinaryTreeLibAddress,
-    shouldTransferOldAccountsl,
+    shouldTransferOldAccounts,
   } = promptResult
 
   console.log(`Deploying ${contractName}...`)
@@ -159,8 +159,8 @@ async function main() {
       ],
     })
   } catch (err) {
-    console.log(
-      'Error verifiying contract on Etherscan:',
+    console.error(
+      'Error verifying contract on Etherscan:',
       err instanceof Error ? err.message : err
     )
   }
@@ -170,8 +170,8 @@ async function main() {
   console.log('Contract address:', address)
   console.log('Etherscan URL:', getEtherscanUrl(chainName, chainId, address))
 
-  if (shouldTransferOldAccountsl) {
-    console.log('Import old founders accounts...')
+  if (shouldTransferOldAccounts) {
+    console.log('Import old Founders accounts...')
     const oldFounderContract = '0x91002bd44b9620866693fd8e03438e69e01563ee'
     const founders = await getCountAddressAddedToAllowMap(
       oldFounderContract,
@@ -182,7 +182,7 @@ async function main() {
       founders.map(() => 2)
     )
 
-    console.log('Import old VS accounts...')
+    console.log('Import old VCs accounts...')
     const oldVcContract = '0xe8c7754340b9f0efe49dfe0f9a47f8f137f70477'
     const vc = await getCountAddressAddedToAllowMap(oldVcContract, provider)
     await contract.legacyBatchMint(
@@ -191,7 +191,7 @@ async function main() {
     )
 
     await contract.lockLegacyMint()
-    console.log('Complete! Lock legacy mint')
+    console.log('Completed locking legacy mint')
   }
 }
 
