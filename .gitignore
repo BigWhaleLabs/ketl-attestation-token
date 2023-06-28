@@ -6,10 +6,6 @@ typechain
 .DS_Store
 dist
 
-# Merkle Trees files
-merkleTrees/*
-!merkleTrees/.gitkeep
-
 # Hardhat files
 cache
 artifacts
