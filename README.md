@@ -16,6 +16,17 @@ ERC1155 token obtained from ketl SealCred attestations
 6. Add `0.txt, 1.txt, 2.txt, 3.txt` files into `merkleTrees/` folder
 7. Run the command `yarn update-merkle-root`, follow instructions in the prompt
 
+### Minting YC (BWLNFT) test token:
+
+0. Open [BWLNFT test token contact](https://polygonscan.com/address/0x6B511660CD2B0137fdA46EDfe72A995A442AF9b4)
+1. Mint BWLNFT test token:
+
+- If you want to mint for other addresses, use `legacyBatchMint` function. It can be used only by `owner`, you can find credentials in 1pass (search for `owner`)
+- If you want to mint for yourself, simply call `mint` function
+
+2. Add owner(s) address(es) to 1.txt like `BWLNFT:ownerAddress`
+3. Make sure to upload update file to 1pass
+
 ## Environment variables
 
 | Name                         | Description                                               |
