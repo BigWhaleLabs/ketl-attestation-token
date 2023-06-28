@@ -1,4 +1,3 @@
-import * as fs from 'fs'
 import { BigNumber, utils } from 'ethers'
 import {
   DEV_KETL_ATTESTATION_CONTRACT,
@@ -9,6 +8,7 @@ import {
 import { KetlAttestation__factory } from '../typechain'
 import { cwd } from 'process'
 import { ethers } from 'hardhat'
+import { readdirSync, writeFileSync } from 'fs'
 import { resolve } from 'path'
 import LineByLine from 'n-readlines'
 import balanceVerification from '../utils/balanceVerification'
@@ -22,8 +22,8 @@ import twitterVerification from '../utils/twitterVerification'
 enum Verification {
   email = 'email',
   twitter = 'twitter',
-  AlumNFT = 'AlumNFT',
-  BWLNFT = 'BWLNFT',
+  orangedao = 'orangedao',
+  bwlnft = 'bwlnft',
   token = 'token',
 }
 
@@ -39,9 +39,9 @@ function generateHashByRecord(
       return emailVerification(hashFunc, content)
     case Verification.twitter:
       return twitterVerification(hashFunc, content)
-    case Verification.AlumNFT:
+    case Verification.orangedao:
       return balanceVerification(hashFunc, content, YC_ALUM_NFT_CONTRACT)
-    case Verification.BWLNFT:
+    case Verification.bwlnft:
       return balanceVerification(hashFunc, content, KETL_BWL_NFT_CONTRACT)
     default:
       throw new Error(`Unknown verification type: ${verification}!`)
@@ -49,25 +49,26 @@ function generateHashByRecord(
 }
 
 async function main() {
+  // Get the wallet to update the contract with
   const [deployer] = await ethers.getSigners()
-
   // Deploy the contract
   console.log('Updating contracts with the account:', deployer.address)
   console.log(
     'Account balance:',
     utils.formatEther(await deployer.getBalance())
   )
-
+  // Check if it's production
   const promptEnv = await prompt.get({
     properties: {
       isProduction: {
         type: 'boolean',
         required: true,
         default: false,
+        description: 'Is it production?',
       },
     },
   })
-
+  // Get the attestation address
   const { attestationAddress } = await prompt.get({
     properties: {
       attestationAddress: {
@@ -76,19 +77,39 @@ async function main() {
           ? PROD_KETL_ATTESTATION_CONTRACT
           : DEV_KETL_ATTESTATION_CONTRACT,
         conform: utils.isAddress,
+        description: 'Ketl attestation contract address',
       },
     },
   })
-
+  // Create attestation contract instance
   const ketlAttestation = KetlAttestation__factory.connect(
     attestationAddress,
     deployer
   )
-
+  // Create hash function
   const hashFunc = await poseidonHash()
-  const ids = [0, 1, 2, 3]
-
-  for (const id of ids) {
+  // Read merkleTrees folder
+  const ids = readdirSync(resolve(cwd(), 'merkleTrees'))
+    .filter((n) => n.includes('.txt'))
+    .map((n) => +n.replace('.txt', ''))
+  if (!ids.length) {
+    console.log('No merkleTrees found!')
+    return
+  }
+  // Choose what ids to update
+  const { promptIds } = await prompt.get({
+    properties: {
+      promptIds: {
+        type: 'string',
+        required: true,
+        default: ids.join(','),
+        description: 'Ids to update split by ","',
+      },
+    },
+  })
+  // Update the ids
+  for (const id of promptIds.split(',')) {
+    console.log(`Updating merkleRoot for ${id}`)
     const filePath = resolve(cwd(), 'merkleTrees', `${id}.txt`)
     const liner = new LineByLine(filePath)
 
@@ -105,7 +126,9 @@ async function main() {
       }
     }
 
-    fs.writeFileSync(
+    console.log(`Found ${attestationHashes.length} records for ${id}`)
+
+    writeFileSync(
       resolve(cwd(), 'hashes', `${id}.json`),
       JSON.stringify(attestationHashes.sort()),
       'utf-8'
@@ -132,17 +155,20 @@ async function main() {
           type: 'number',
           required: true,
           default: minimumEntanglementCounts,
+          description: 'Minimum entanglement counts',
         },
       },
     })
 
-    console.log(`Update merkleRoot with ${merkleTreeProof.root} for ${id}`)
+    console.log(`Updating merkleRoot to ${merkleTreeProof.root} for ${id}`)
     await ketlAttestation.setAttestationMerkleRoot(
       id,
       merkleTreeProof.root,
       promptMinimumEntanglementCounts.minimumEntanglementCounts
     )
+    console.log(`Updated merkleRoot to ${merkleTreeProof.root} for ${id}`)
   }
+  console.log('Done!')
 }
 
 main().catch((error) => {
