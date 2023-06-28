@@ -8,24 +8,24 @@ ERC1155 token obtained from ketl SealCred attestations
 2. Create `.env` and fill it, you can take data from 1password, consider looking into `.env.sample`
 3. Install the dependencies with `yarn`
 4. Compile the contract with `yarn build`
-5. Find inputs in 1password and download them
-   4.1. Find "Ketl members" - 0.txt
-   4.2. Find "YC" - 1.txt
-   4.3. Find "Founders" - 2.txt
-   4.4. Find "VC" - 3.txt
-6. Add `0.txt, 1.txt, 2.txt, 3.txt` files into `merkleTrees/` folder
-7. Run the command `yarn update-merkle-root`, follow instructions in the prompt
 
-### Minting YC (BWLNFT) test token:
+### Updating merkle trees
 
-0. Open [BWLNFT test token contact](https://polygonscan.com/address/0x6B511660CD2B0137fdA46EDfe72A995A442AF9b4)
-1. Mint BWLNFT test token:
+1. Make sure you have access to [ketl-merkle-trees](https://github.com/BigWhaleLabs/ketl-merkle-trees)
+2. Install submodules `git submodule update --init --recursive`
+3. Run the command `yarn update-merkle-root`, follow instructions in the prompt
 
-- If you want to mint for other addresses, use `legacyBatchMint` function. It can be used only by `owner`, you can find credentials in 1pass (search for `owner`)
-- If you want to mint for yourself, simply call `mint` function
+You can also update submodules by running `git submodule update --remote --merge`.
 
-2. Add owner(s) address(es) to 1.txt like `BWLNFT:ownerAddress`
-3. Make sure to upload update file to 1pass
+### Minting BWLNFT test token:
+
+1. Open [BWLNFT test token contact](https://polygonscan.com/address/0x6B511660CD2B0137fdA46EDfe72A995A442AF9b4)
+2. Mint BWLNFT test token:
+
+   1. If you want to mint for other addresses, use `legacyBatchMint` function. It can be used only by `owner`, you can find credentials in 1pass (search for `owner`)
+   2. If you want to mint for yourself, simply call `mint` function
+
+3. Add the new addresses to [ketl-merkle-trees](https://github.com/BigWhaleLabs/ketl-merkle-trees) like `bwlnft:{address}`
 
 ## Environment variables
 
