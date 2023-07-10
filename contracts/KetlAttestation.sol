@@ -163,7 +163,7 @@ contract KetlAttestation is ERC1155, Ownable, Versioned, ERC2771Recipient {
     );
     // Check if this attestation has already been used
     require(
-      !attestationHashesEntangled[attestationHash].current() <= maximumEntanglementsPerAttestation,
+      attestationHashesEntangled[attestationHash].current() <= maximumEntanglementsPerAttestation,
       "Attestation has been used too many times"
     );
     // Check the attestations merkle root
