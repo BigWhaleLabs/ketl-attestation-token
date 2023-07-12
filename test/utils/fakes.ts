@@ -1,4 +1,3 @@
-import { BigNumber } from 'ethers'
 import { KetlAttestation } from 'typechain'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers'
 import { deployMockContract } from 'ethereum-waffle'
