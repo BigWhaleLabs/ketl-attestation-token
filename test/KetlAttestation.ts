@@ -1,8 +1,46 @@
 import { KetlAttestation } from '../typechain'
 import { ethers } from 'hardhat'
 import { expect } from 'chai'
+import { getFakeAttestationCheckerVerifier, getMockProof } from './utils/fakes'
 
 describe('KetlAttestation contract tests', () => {
+  before(async function () {
+    this.signers = await ethers.getSigners()
+    this.owner = this.signers[0]
+    this.user = this.signers[1]
+
+    this.poseidonT3Factory = await ethers.getContractFactory('PoseidonT3')
+    this.poseidonT3 = await this.poseidonT3Factory.deploy()
+    await this.poseidonT3.deployed()
+
+    this.incrementalBinaryTreeFactory = await ethers.getContractFactory(
+      'IncrementalBinaryTree',
+      {
+        libraries: {
+          PoseidonT3: this.poseidonT3.address,
+        },
+      }
+    )
+    this.incrementalBinaryTree =
+      await this.incrementalBinaryTreeFactory.deploy()
+    await this.incrementalBinaryTree.deployed()
+
+    this.ketlAttestationFactory = await ethers.getContractFactory(
+      'KetlAttestation',
+      {
+        libraries: {
+          IncrementalBinaryTree: this.incrementalBinaryTree.address,
+        },
+      }
+    )
+
+    this.fakeAttestationCheckerVerifier =
+      await getFakeAttestationCheckerVerifier(this.owner)
+    this.fakePasswordCheckerVerifier = await getFakeAttestationCheckerVerifier(
+      this.owner
+    )
+  })
+
   describe('Constructor', function () {
     it('should deploy the contract with the correct fields', async function () {
       const uri = 'https://game.example/api/item/{id}.json'
@@ -14,34 +52,15 @@ describe('KetlAttestation contract tests', () => {
         '0x0000000000000000000000000000000000000001'
       const forwarder = '0x0000000000000000000000000000000000000002'
 
-      const PoseidonT3Factory = await ethers.getContractFactory('PoseidonT3')
-      const poseidonT3 = await PoseidonT3Factory.deploy()
-      await poseidonT3.deployed()
-
-      const IncrementalBinaryTreeFactory = await ethers.getContractFactory(
-        'IncrementalBinaryTree',
-        {
-          libraries: {
-            PoseidonT3: poseidonT3.address,
-          },
-        }
-      )
-      const incrementalBinaryTree = await IncrementalBinaryTreeFactory.deploy()
-      await incrementalBinaryTree.deployed()
-
-      const factory = await ethers.getContractFactory('KetlAttestation', {
-        libraries: {
-          IncrementalBinaryTree: incrementalBinaryTree.address,
-        },
-      })
-      const contract: KetlAttestation = await factory.deploy(
-        uri,
-        version,
-        attestorPublicKey,
-        attestationCheckerVerifier,
-        passwordCheckerVerifier,
-        forwarder
-      )
+      const contract: KetlAttestation =
+        await this.ketlAttestationFactory.deploy(
+          uri,
+          version,
+          attestorPublicKey,
+          attestationCheckerVerifier,
+          passwordCheckerVerifier,
+          forwarder
+        )
       expect(await contract.uri(0)).to.equal(
         'https://game.example/api/item/{id}.json'
       )
@@ -53,6 +72,116 @@ describe('KetlAttestation contract tests', () => {
       expect(await contract.passwordCheckerVerifier()).to.equal(
         passwordCheckerVerifier
       )
+    })
+  })
+
+  describe('registerEntangement', () => {
+    const uri = 'https://game.example/api/item/{id}.json'
+    const version = '0.0.1'
+
+    const attestationType = 0
+    const attestorPublicKey = 1234
+    const attestationMerkleRoot = 5678
+    const entanglement = 0
+    const attestationHash = 9999
+    const minimumEntanglementCount = 5
+    const maximumEntanglements = 5
+
+    beforeEach(async function () {
+      this.ketlAttestation = await this.ketlAttestationFactory.deploy(
+        uri,
+        version,
+        attestorPublicKey,
+        this.fakeAttestationCheckerVerifier.address,
+        this.fakePasswordCheckerVerifier.address,
+        ethers.constants.AddressZero
+      )
+      await this.ketlAttestation.deployed()
+      await this.ketlAttestation.setAttestationMerkleRoot(
+        attestationType,
+        attestationMerkleRoot,
+        minimumEntanglementCount
+      )
+      await this.ketlAttestation.setMaximumEntanglementsPerAttestation(
+        maximumEntanglements
+      )
+    })
+    it('should register an entanglement with the correct proof', async function () {
+      await this.fakeAttestationCheckerVerifier.mock.verifyProof.returns(true)
+      const { a, b, c, input } = getMockProof(
+        attestationType,
+        attestationMerkleRoot,
+        entanglement,
+        attestationHash,
+        attestorPublicKey
+      )
+      await this.ketlAttestation
+        .connect(this.user)
+        .registerEntanglement(a, b, c, input)
+      expect(
+        await this.ketlAttestation.attestationHashesEntangledCount(
+          attestationHash
+        )
+      ).to.equal(1)
+      expect(
+        await this.ketlAttestation.attestationHashesEntangled(attestationHash)
+      ).to.be.false
+    })
+    it('should not be able to register an entanglement with incorrect proof', async function () {
+      await this.fakeAttestationCheckerVerifier.mock.verifyProof.returns(false)
+      const { a, b, c, input } = getMockProof(
+        attestationType,
+        attestationMerkleRoot,
+        entanglement,
+        attestationHash,
+        attestorPublicKey
+      )
+      await expect(
+        this.ketlAttestation
+          .connect(this.user)
+          .registerEntanglement(a, b, c, input)
+      ).to.be.revertedWith('Invalid ZK proof')
+      expect(
+        await this.ketlAttestation.attestationHashesEntangledCount(
+          attestationHash
+        )
+      ).to.equal(0)
+      expect(
+        await this.ketlAttestation.attestationHashesEntangled(attestationHash)
+      ).to.be.false
+    })
+    it('should allow for multiple entanglements to be registered with the same proof', async function () {
+      await this.fakeAttestationCheckerVerifier.mock.verifyProof.returns(true)
+      const { a, b, c, input } = getMockProof(
+        attestationType,
+        attestationMerkleRoot,
+        entanglement,
+        attestationHash,
+        attestorPublicKey
+      )
+      for (let i = 0; i < maximumEntanglements; i++) {
+        await this.ketlAttestation
+          .connect(this.user)
+          .registerEntanglement(a, b, c, input)
+      }
+      expect(
+        await this.ketlAttestation.attestationHashesEntangledCount(
+          attestationHash
+        )
+      ).to.equal(5)
+      await expect(
+        this.ketlAttestation
+          .connect(this.user)
+          .registerEntanglement(a, b, c, input)
+      ).to.be.revertedWith('Attestation has been used too many times')
+      expect(
+        await this.ketlAttestation.attestationHashesEntangledCount(
+          attestationHash
+        )
+      ).to.equal(5)
+      expect(
+        await this.ketlAttestation.attestationHashesEntangled(attestationHash)
+      ).to.be.true
     })
   })
 })
