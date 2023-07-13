@@ -13,9 +13,11 @@ ERC1155 token obtained from ketl SealCred attestations
 
 1. Make sure you have access to [ketl-merkle-trees](https://github.com/BigWhaleLabs/ketl-merkle-trees)
 2. Install submodules `git submodule update --init --recursive`
-3. Run the command `yarn update-merkle-root`, follow instructions in the prompt
-
-You can also update submodules by running `git submodule update --remote --merge`.
+3. Make sure your submodules are up to date `git submodule update --remote --merge`
+4. Add the new credentials to `merkleTrees` folder (note the naming of the files and the format of the data)
+5. Make sure to `git push` the changes to the `ketl-merkle-trees` repository
+6. Run the command `yarn update-merkle-root`, follow instructions in the prompt
+7. Make sure to `git push` the changes to the `ketl-attestation-token` repository (it contains the new hashes for the merkle trees leaves)
 
 ### Minting BWLNFT test token:
 
