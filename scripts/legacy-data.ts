@@ -88,23 +88,28 @@ const gsnInterface = new ethers.utils.Interface([
     type: 'function',
   },
 ])
+
 const ketlAttestationInterface = new ethers.utils.Interface(
   KetlAttestationArtifact.abi
 )
-const settings = {
+
+const alchemy = new Alchemy({
   apiKey: process.env.ALCHEMY_API_KEY,
   network: Network.MATIC_MUMBAI,
-}
-const alchemy = new Alchemy(settings)
+})
+
+const ENTANGLEMENT_REGISTERED_TOPIC =
+  '0x82ec2e6b77000a06458fdfa65b3d3b2d8b35e200fd1d335cebd1d6ef0c40fdf4'
+const TRANSFER_SINGLE_TOPIC =
+  '0xc3d58168c5ae7397731d063d5bbf3d657854427343f4c083240f7aacaa2d0f62'
+const DEV_CONTRACT_DEPLOYED_BLOCK = 36569615
+const DEV_LEGACY_MINT_LOCKED_BLOCK = 36569648
 
 async function main() {
   const logs = await alchemy.core.getLogs({
-    fromBlock: 36569648, // Legacy Mint Locked at Block 36569648
+    fromBlock: DEV_LEGACY_MINT_LOCKED_BLOCK, // Legacy Mint Locked at Block 36569648
     address: DEV_KETL_ATTESTATION_CONTRACT,
-    topics: [
-      '0x82ec2e6b77000a06458fdfa65b3d3b2d8b35e200fd1d335cebd1d6ef0c40fdf4', // EntanglementRegistered
-      // '0xc3d58168c5ae7397731d063d5bbf3d657854427343f4c083240f7aacaa2d0f62', // TransferSingle
-    ],
+    topics: [ENTANGLEMENT_REGISTERED_TOPIC],
   })
 
   const output: unknown[] = []
@@ -127,7 +132,7 @@ async function main() {
     'legacy/dev-register-entanglement.json',
     JSON.stringify(output)
   )
-  //fs.writeFileSync('legacy/dev-mint.json', JSON.stringify(output))
+  //fs.writeFileSync('legacy/dev-set-nullifiers.json', JSON.stringify(output))
 }
 
 main().catch((error) => {
