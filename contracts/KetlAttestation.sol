@@ -84,7 +84,6 @@ contract KetlAttestation is ERC1155, Ownable, Versioned, ERC2771Recipient {
   // Attestations to total number of entanglements
   mapping(uint => Counters.Counter) public attestationHashesEntangled;
   mapping(uint => uint16) public maxEntanglementsPerAttestation;
-  uint16 public globalMaxEntanglementsPerAttestation = 1;
 
   mapping(uint => Counters.Counter) public entanglementsCounts;
   mapping(uint => uint16) public minimumEntanglementCounts;
@@ -136,12 +135,6 @@ contract KetlAttestation is ERC1155, Ownable, Versioned, ERC2771Recipient {
     minimumEntanglementCounts[_id] = _minimumEntanglementCount;
   }
 
-  function setGlobalMaxEntanglementsPerAttestation(
-    uint16 _globalMaxEntanglementsPerAttestation
-  ) public onlyOwner {
-    globalMaxEntanglementsPerAttestation = _globalMaxEntanglementsPerAttestation;
-  }
-
   function setMaxEntanglementsPerAttestation(
     uint _attestationHash,
     uint16 _maxEntanglementsPerAttestation
@@ -173,13 +166,10 @@ contract KetlAttestation is ERC1155, Ownable, Versioned, ERC2771Recipient {
       "Invalid ZK proof"
     );
     // Check if this attestation has already been used
-    uint maximumEntangements = maxEntanglementsPerAttestation[attestationHash] >
-      0
-      ? maxEntanglementsPerAttestation[attestationHash]
-      : globalMaxEntanglementsPerAttestation;
     require(
-      attestationHashesEntangled[attestationHash].current() <
-        maximumEntangements,
+      attestationHashesEntangled[attestationHash].current() == 0 ||
+        attestationHashesEntangled[attestationHash].current() <
+        maxEntanglementsPerAttestation[attestationHash],
       "Attestation has been used too many times"
     );
     // Check the attestations merkle root

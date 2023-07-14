@@ -85,8 +85,7 @@ describe('KetlAttestation contract tests', () => {
     const entanglement = 0
     const attestationHash = 9999
     const minimumEntanglementCount = 5
-    const globalMaximumEntanglements = 5
-    const localMaximumEntanglements = 3
+    const maximumEntanglements = 3
 
     beforeEach(async function () {
       this.ketlAttestation = await this.ketlAttestationFactory.deploy(
@@ -102,9 +101,6 @@ describe('KetlAttestation contract tests', () => {
         attestationType,
         attestationMerkleRoot,
         minimumEntanglementCount
-      )
-      await this.ketlAttestation.setGlobalMaxEntanglementsPerAttestation(
-        globalMaximumEntanglements
       )
     })
     it('should register an entanglement with the correct proof', async function () {
@@ -141,7 +137,7 @@ describe('KetlAttestation contract tests', () => {
         await this.ketlAttestation.attestationHashesEntangled(attestationHash)
       ).to.equal(0)
     })
-    it('should allow for multiple entanglements to be registered with the same proof (global)', async function () {
+    it('should allow a single entanglement only by default', async function () {
       await this.fakeAttestationCheckerVerifier.mock.verifyProof.returns(true)
       const { a, b, c, input } = getMockProof(
         attestationType,
@@ -150,14 +146,12 @@ describe('KetlAttestation contract tests', () => {
         attestationHash,
         attestorPublicKey
       )
-      for (let i = 0; i < globalMaximumEntanglements; i++) {
-        await this.ketlAttestation
-          .connect(this.user)
-          .registerEntanglement(a, b, c, input)
-      }
+      await this.ketlAttestation
+        .connect(this.user)
+        .registerEntanglement(a, b, c, input)
       expect(
         await this.ketlAttestation.attestationHashesEntangled(attestationHash)
-      ).to.equal(5)
+      ).to.equal(1)
       await expect(
         this.ketlAttestation
           .connect(this.user)
@@ -165,13 +159,13 @@ describe('KetlAttestation contract tests', () => {
       ).to.be.revertedWith('Attestation has been used too many times')
       expect(
         await this.ketlAttestation.attestationHashesEntangled(attestationHash)
-      ).to.equal(5)
+      ).to.equal(1)
     })
-    it('should allow for multiple entanglements to be registered with the same proof (per attestation)', async function () {
+    it('should allow for multiple entanglements to be registered with the same proof if maxEntanglementsPerAttestation is set', async function () {
       await this.fakeAttestationCheckerVerifier.mock.verifyProof.returns(true)
       await this.ketlAttestation.setMaxEntanglementsPerAttestation(
         attestationHash,
-        localMaximumEntanglements
+        maximumEntanglements
       )
       const { a, b, c, input } = getMockProof(
         attestationType,
@@ -180,14 +174,14 @@ describe('KetlAttestation contract tests', () => {
         attestationHash,
         attestorPublicKey
       )
-      for (let i = 0; i < localMaximumEntanglements; i++) {
+      for (let i = 0; i < maximumEntanglements; i++) {
         await this.ketlAttestation
           .connect(this.user)
           .registerEntanglement(a, b, c, input)
       }
       expect(
         await this.ketlAttestation.attestationHashesEntangled(attestationHash)
-      ).to.equal(3)
+      ).to.equal(maximumEntanglements)
       await expect(
         this.ketlAttestation
           .connect(this.user)
@@ -195,7 +189,7 @@ describe('KetlAttestation contract tests', () => {
       ).to.be.revertedWith('Attestation has been used too many times')
       expect(
         await this.ketlAttestation.attestationHashesEntangled(attestationHash)
-      ).to.equal(3)
+      ).to.equal(maximumEntanglements)
     })
   })
 })
