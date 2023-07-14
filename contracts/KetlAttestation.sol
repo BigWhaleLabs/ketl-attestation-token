@@ -61,15 +61,20 @@ pragma solidity ^0.8.19;
 
 import "@big-whale-labs/versioned-contract/contracts/Versioned.sol";
 import "@opengsn/contracts/src/ERC2771Recipient.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
-import "@openzeppelin/contracts/utils/Counters.sol";
+import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC1155/ERC1155Upgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/utils/CountersUpgradeable.sol";
 import "@zk-kit/incremental-merkle-tree.sol/IncrementalBinaryTree.sol";
 import "./interfaces/IAttestationCheckerVerifier.sol";
 import "./interfaces/IPasswordCheckerVerifier.sol";
 
-contract KetlAttestation is ERC1155, Ownable, Versioned, ERC2771Recipient {
-  using Counters for Counters.Counter;
+contract KetlAttestation is
+  ERC1155Upgradeable,
+  OwnableUpgradeable,
+  Versioned,
+  ERC2771Recipient
+{
+  using CountersUpgradeable for CountersUpgradeable.Counter;
   using IncrementalBinaryTree for IncrementalTreeData;
 
   // Attestations
@@ -83,7 +88,7 @@ contract KetlAttestation is ERC1155, Ownable, Versioned, ERC2771Recipient {
   mapping(uint => mapping(uint => bool)) public entanglementsRoots;
   mapping(uint => bool) public attestationHashesEntangled;
 
-  mapping(uint => Counters.Counter) public entanglementsCounts;
+  mapping(uint => CountersUpgradeable.Counter) public entanglementsCounts;
   mapping(uint => uint16) public minimumEntanglementCounts;
   IPasswordCheckerVerifier public passwordCheckerVerifier;
   // Nullifiers
@@ -94,14 +99,18 @@ contract KetlAttestation is ERC1155, Ownable, Versioned, ERC2771Recipient {
   // Events
   event EntanglementRegistered(uint attestationType, uint entanglement);
 
-  constructor(
+  function initialize(
     string memory _uri,
     string memory _version,
     uint _attestorPublicKey,
     address _attestationCheckerVerifier,
     address _passwordCheckerVerifier,
     address _forwarder
-  ) ERC1155(_uri) Versioned(_version) {
+  ) public initializer {
+    __ERC1155_init(_uri);
+    __Ownable_init();
+    version = _version;
+
     attestorPublicKey = _attestorPublicKey;
     attestationCheckerVerifier = IAttestationCheckerVerifier(
       _attestationCheckerVerifier
