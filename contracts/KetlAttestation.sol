@@ -81,8 +81,10 @@ contract KetlAttestation is ERC1155, Ownable, Versioned, ERC2771Recipient {
   mapping(uint => IncrementalTreeData) public entanglementsTrees;
   mapping(uint => uint[]) public entanglements;
   mapping(uint => mapping(uint => bool)) public entanglementsRoots;
-  mapping(uint => Counters.Counter) public attestationHashesEntangledCount;
-  uint public maximumEntanglementsPerAttestation = 1;
+  // Attestations to total number of entanglements
+  mapping(uint => Counters.Counter) public attestationHashesEntangled;
+  mapping(uint => uint16) public maxEntanglementsPerAttestation;
+  uint16 public globalMaxEntanglementsPerAttestation = 1;
 
   mapping(uint => Counters.Counter) public entanglementsCounts;
   mapping(uint => uint16) public minimumEntanglementCounts;
@@ -134,22 +136,23 @@ contract KetlAttestation is ERC1155, Ownable, Versioned, ERC2771Recipient {
     minimumEntanglementCounts[_id] = _minimumEntanglementCount;
   }
 
-  function setMaximumEntanglementsPerAttestation(
-    uint _maximumEntanglementsPerAttestation
+  function setGlobalMaxEntanglementsPerAttestation(
+    uint16 _globalMaxEntanglementsPerAttestation
   ) public onlyOwner {
-    maximumEntanglementsPerAttestation = _maximumEntanglementsPerAttestation;
+    globalMaxEntanglementsPerAttestation = _globalMaxEntanglementsPerAttestation;
+  }
+
+  function setMaxEntanglementsPerAttestation(
+    uint _attestationHash,
+    uint16 _maxEntanglementsPerAttestation
+  ) public onlyOwner {
+    maxEntanglementsPerAttestation[
+      _attestationHash
+    ] = _maxEntanglementsPerAttestation;
   }
 
   function setCurrentTokenId(uint32 _currentTokenId) public onlyOwner {
     currentTokenId = _currentTokenId;
-  }
-
-  function attestationHashesEntangled(
-    uint _attestationHash
-  ) public view returns (bool) {
-    return
-      attestationHashesEntangledCount[_attestationHash].current() >=
-      maximumEntanglementsPerAttestation;
   }
 
   function registerEntanglement(
@@ -170,8 +173,13 @@ contract KetlAttestation is ERC1155, Ownable, Versioned, ERC2771Recipient {
       "Invalid ZK proof"
     );
     // Check if this attestation has already been used
+    uint maximumEntangements = maxEntanglementsPerAttestation[attestationHash] >
+      0
+      ? maxEntanglementsPerAttestation[attestationHash]
+      : globalMaxEntanglementsPerAttestation;
     require(
-      !attestationHashesEntangled(attestationHash),
+      attestationHashesEntangled[attestationHash].current() <
+        maximumEntangements,
       "Attestation has been used too many times"
     );
     // Check the attestations merkle root
@@ -185,7 +193,7 @@ contract KetlAttestation is ERC1155, Ownable, Versioned, ERC2771Recipient {
       "Attestation public key is wrong"
     );
     // Save the entanglement fact
-    attestationHashesEntangledCount[attestationHash].increment();
+    attestationHashesEntangled[attestationHash].increment();
     // Add the entanglement to the tree
     entanglementsTrees[attestationType].insert(entanglement);
     // Save the entanglement in the array
