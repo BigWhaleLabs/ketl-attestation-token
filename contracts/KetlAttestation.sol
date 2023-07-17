@@ -260,7 +260,7 @@ contract KetlAttestation is
   function _msgSender()
     internal
     view
-    override(Context, ERC2771Recipient)
+    override(ContextUpgradeable, ERC2771Recipient)
     returns (address sender)
   {
     sender = ERC2771Recipient._msgSender();
@@ -269,7 +269,7 @@ contract KetlAttestation is
   function _msgData()
     internal
     view
-    override(Context, ERC2771Recipient)
+    override(ContextUpgradeable, ERC2771Recipient)
     returns (bytes calldata ret)
   {
     return ERC2771Recipient._msgData();
