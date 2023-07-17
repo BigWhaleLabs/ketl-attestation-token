@@ -137,6 +137,26 @@ contract KetlAttestation is ERC1155, Ownable, Versioned, ERC2771Recipient {
     currentTokenId = _currentTokenId;
   }
 
+  function setAttestationCheckerVerifier(
+    address _attestationCheckerVerifier
+  ) external onlyOwner {
+    attestationCheckerVerifier = IAttestationCheckerVerifier(
+      _attestationCheckerVerifier
+    );
+  }
+
+  function setPasswordCheckerVerifier(
+    address _passwordCheckerVerifier
+  ) external onlyOwner {
+    passwordCheckerVerifier = IPasswordCheckerVerifier(
+      _passwordCheckerVerifier
+    );
+  }
+
+  function setAttestorPublicKey(uint _attestorPublicKey) external onlyOwner {
+    attestorPublicKey = _attestorPublicKey;
+  }
+
   function registerEntanglement(
     uint[2] memory a,
     uint[2][2] memory b,
