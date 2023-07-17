@@ -59,7 +59,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.19;
 
-import "@big-whale-labs/versioned-contract/contracts/Versioned.sol";
 import "@opengsn/contracts/src/ERC2771Recipient.sol";
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC1155/ERC1155Upgradeable.sol";
@@ -71,12 +70,12 @@ import "./interfaces/IPasswordCheckerVerifier.sol";
 contract KetlAttestation is
   ERC1155Upgradeable,
   OwnableUpgradeable,
-  Versioned,
   ERC2771Recipient
 {
   using CountersUpgradeable for CountersUpgradeable.Counter;
   using IncrementalBinaryTree for IncrementalTreeData;
 
+  string public version;
   // Attestations
   uint32 public currentTokenId;
   uint public attestorPublicKey;
