@@ -4,10 +4,10 @@ import {
   GSN_MUMBAI_FORWARDER_CONTRACT_ADDRESS,
   INCREMENTAL_BINARY_TREE_ADDRESS,
   PASSWORD_VERIFIER_CONTRACT_ADDRESS,
+  PROD_KETL_ATTESTATION_CONTRACT,
 } from '@big-whale-labs/constants'
-import { KetlAllowMap__factory } from '@big-whale-labs/ketl-allow-map-contract'
-import { Provider } from '@ethersproject/providers'
-import { ethers, run } from 'hardhat'
+import { ethers, run, upgrades } from 'hardhat'
+import { getLegacyTokenHolders } from './helpers'
 import { utils } from 'ethers'
 import { version } from '../package.json'
 import prompt from 'prompt'
@@ -20,25 +20,6 @@ function getEtherscanUrl(chainName: string, chainId: number, address: string) {
   return `https://${
     chainName.includes('mainnet') ? '' : `${chainName}.`
   }${etherscanBaseUrl}/address/${address}`
-}
-
-const KetlAllowMapInterface = new utils.Interface(KetlAllowMap__factory.abi)
-
-function parseAccountAddress(args: { data: string; topics: string[] }) {
-  return KetlAllowMapInterface.parseLog(args).args[0]
-}
-
-async function getCountAddressAddedToAllowMap(
-  address: string,
-  provider: Provider
-) {
-  const contract = KetlAllowMap__factory.connect(address, provider)
-
-  const transactions = await contract.queryFilter(
-    contract.filters.AddressAddedToAllowMap()
-  )
-
-  return transactions.map(parseAccountAddress)
 }
 
 async function main() {
@@ -67,6 +48,11 @@ async function main() {
 
   const promptResult = await prompt.get({
     properties: {
+      ketlAttestationTokenAddress: {
+        required: true,
+        default: PROD_KETL_ATTESTATION_CONTRACT,
+        pattern: ethereumAddressRegex,
+      },
       attestationVerifierAddress: {
         required: true,
         default: ATTESTATION_VERIFIER_CONTRACT_ADDRESS,
@@ -104,6 +90,7 @@ async function main() {
   })
 
   const {
+    ketlAttestationTokenAddress,
     attestationVerifierAddress,
     passwordVerifierAddress,
     attestorPublicKey,
@@ -114,19 +101,23 @@ async function main() {
   } = promptResult
 
   console.log(`Deploying ${contractName}...`)
-  const Contract = await ethers.getContractFactory(contractName, {
+  const contractFactory = await ethers.getContractFactory(contractName, {
     libraries: {
       IncrementalBinaryTree: incrementalBinaryTreeLibAddress,
     },
   })
 
-  const contract = await Contract.deploy(
-    baseURI,
-    version,
-    attestorPublicKey,
-    attestationVerifierAddress,
-    passwordVerifierAddress,
-    forwarder
+  const contract = await upgrades.deployProxy(
+    contractFactory,
+    [
+      baseURI,
+      version,
+      attestorPublicKey,
+      attestationVerifierAddress,
+      passwordVerifierAddress,
+      forwarder,
+    ],
+    { initializer: 'initializer' }
   )
 
   console.log(
@@ -138,9 +129,21 @@ async function main() {
     utils.formatEther(contract.deployTransaction.gasLimit)
   )
   await contract.deployed()
-  const address = contract.address
 
-  console.log('Contract deployed to:', address)
+  const proxyAddress = contract.address
+  const contractImplementationAddress =
+    await upgrades.erc1967.getImplementationAddress(contract.address)
+  const contractAdminAddress = await upgrades.erc1967.getAdminAddress(
+    contract.address
+  )
+
+  console.log(`${contractName} Proxy address: `, proxyAddress)
+  console.log(
+    `${contractName} Implementation address: `,
+    contractImplementationAddress
+  )
+  console.log(`${contractName} Admin address: `, contractAdminAddress)
+
   console.log('Wait for 1 minute to make sure blockchain is updated')
   await new Promise((resolve) => setTimeout(resolve, 60 * 1000))
 
@@ -148,7 +151,7 @@ async function main() {
   console.log('Verifying contract on Etherscan')
   try {
     await run('verify:verify', {
-      address,
+      address: contractImplementationAddress,
       constructorArguments: [
         baseURI,
         version,
@@ -167,29 +170,18 @@ async function main() {
 
   // Print out the information
   console.log(`${contractName} deployed and verified on Etherscan!`)
-  console.log('Contract address:', address)
-  console.log('Etherscan URL:', getEtherscanUrl(chainName, chainId, address))
+  console.log('Contract address:', proxyAddress)
+  console.log(
+    'Etherscan URL:',
+    getEtherscanUrl(chainName, chainId, proxyAddress)
+  )
 
   if (shouldTransferOldAccounts) {
-    console.log('Import old Founders accounts...')
-    const oldFounderContract = '0x91002bd44b9620866693fd8e03438e69e01563ee'
-    const founders = await getCountAddressAddedToAllowMap(
-      oldFounderContract,
+    const [holders, attestationTypes] = await getLegacyTokenHolders(
+      ketlAttestationTokenAddress,
       provider
     )
-    await contract.legacyBatchMint(
-      founders,
-      founders.map(() => 2)
-    )
-
-    console.log('Import old VCs accounts...')
-    const oldVcContract = '0xe8c7754340b9f0efe49dfe0f9a47f8f137f70477'
-    const vc = await getCountAddressAddedToAllowMap(oldVcContract, provider)
-    await contract.legacyBatchMint(
-      vc,
-      vc.map(() => 3)
-    )
-
+    await contract.legacyBatchMint(holders, attestationTypes)
     await contract.lockLegacyMint()
     console.log('Completed locking legacy mint')
   }
