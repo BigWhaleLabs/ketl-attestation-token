@@ -86,7 +86,8 @@ contract KetlAttestation is
   mapping(uint => uint[]) public entanglements;
   mapping(uint => mapping(uint => bool)) public entanglementsRoots;
   // Attestations to total number of entanglements
-  mapping(uint => Counters.Counter) public attestationHashesEntangled;
+  mapping(uint => CountersUpgradeable.Counter)
+    public attestationHashesEntangled;
   mapping(uint => uint16) public maxEntanglementsPerAttestation;
 
   mapping(uint => CountersUpgradeable.Counter) public entanglementsCounts;
