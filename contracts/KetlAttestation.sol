@@ -85,7 +85,9 @@ contract KetlAttestation is
   mapping(uint => IncrementalTreeData) public entanglementsTrees;
   mapping(uint => uint[]) public entanglements;
   mapping(uint => mapping(uint => bool)) public entanglementsRoots;
-  mapping(uint => bool) public attestationHashesEntangled;
+  // Attestations to total number of entanglements
+  mapping(uint => Counters.Counter) public attestationHashesEntangled;
+  mapping(uint => uint16) public maxEntanglementsPerAttestation;
 
   mapping(uint => CountersUpgradeable.Counter) public entanglementsCounts;
   mapping(uint => uint16) public minimumEntanglementCounts;
@@ -97,6 +99,7 @@ contract KetlAttestation is
 
   // Events
   event EntanglementRegistered(uint attestationType, uint entanglement);
+  event TokenMinted(uint attestationType, uint nullifier);
 
   function initialize(
     string memory _uri,
@@ -141,8 +144,37 @@ contract KetlAttestation is
     minimumEntanglementCounts[_id] = _minimumEntanglementCount;
   }
 
+  function setMaxEntanglementsPerAttestation(
+    uint _attestationHash,
+    uint16 _maxEntanglementsPerAttestation
+  ) public onlyOwner {
+    maxEntanglementsPerAttestation[
+      _attestationHash
+    ] = _maxEntanglementsPerAttestation;
+  }
+
   function setCurrentTokenId(uint32 _currentTokenId) public onlyOwner {
     currentTokenId = _currentTokenId;
+  }
+
+  function setAttestationCheckerVerifier(
+    address _attestationCheckerVerifier
+  ) external onlyOwner {
+    attestationCheckerVerifier = IAttestationCheckerVerifier(
+      _attestationCheckerVerifier
+    );
+  }
+
+  function setPasswordCheckerVerifier(
+    address _passwordCheckerVerifier
+  ) external onlyOwner {
+    passwordCheckerVerifier = IPasswordCheckerVerifier(
+      _passwordCheckerVerifier
+    );
+  }
+
+  function setAttestorPublicKey(uint _attestorPublicKey) external onlyOwner {
+    attestorPublicKey = _attestorPublicKey;
   }
 
   function registerEntanglement(
@@ -164,8 +196,10 @@ contract KetlAttestation is
     );
     // Check if this attestation has already been used
     require(
-      !attestationHashesEntangled[attestationHash],
-      "Attestation has already been entangled"
+      attestationHashesEntangled[attestationHash].current() == 0 ||
+        attestationHashesEntangled[attestationHash].current() <
+        maxEntanglementsPerAttestation[attestationHash],
+      "Attestation has been used too many times"
     );
     // Check the attestations merkle root
     require(
@@ -178,7 +212,7 @@ contract KetlAttestation is
       "Attestation public key is wrong"
     );
     // Save the entanglement fact
-    attestationHashesEntangled[attestationHash] = true;
+    attestationHashesEntangled[attestationHash].increment();
     // Add the entanglement to the tree
     entanglementsTrees[attestationType].insert(entanglement);
     // Save the entanglement in the array
@@ -223,6 +257,7 @@ contract KetlAttestation is
     nullifiers[_nullifier] = true;
     // Mint token
     _mint(_msgSender(), _attestationType, 1, "");
+    emit TokenMinted(_attestationType, _nullifier);
   }
 
   // Legacy mint
