@@ -95,6 +95,7 @@ contract KetlAttestation is ERC1155, Ownable, Versioned, ERC2771Recipient {
 
   // Events
   event EntanglementRegistered(uint attestationType, uint entanglement);
+  event TokenMinted(uint attestationType, uint nullifier);
 
   constructor(
     string memory _uri,
@@ -248,6 +249,7 @@ contract KetlAttestation is ERC1155, Ownable, Versioned, ERC2771Recipient {
     nullifiers[_nullifier] = true;
     // Mint token
     _mint(_msgSender(), _attestationType, 1, "");
+    emit TokenMinted(_attestationType, _nullifier);
   }
 
   // Legacy mint
