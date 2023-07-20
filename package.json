@@ -79,6 +79,7 @@
     "@big-whale-labs/constants": "^0.2.10",
     "@big-whale-labs/ketl-allow-map-contract": "^0.0.3",
     "@big-whale-labs/versioned-contract": "^1.0.2",
+    "@openzeppelin/hardhat-upgrades": "^1.26.0",
     "@zk-kit/incremental-merkle-tree": "^1.1.0",
     "@zk-kit/incremental-merkle-tree.sol": "^1.7.0",
     "n-readlines": "^1.0.1",
