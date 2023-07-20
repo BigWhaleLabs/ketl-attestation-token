@@ -63,6 +63,7 @@ import "@opengsn/contracts/src/ERC2771Recipient.sol";
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC1155/ERC1155Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/CountersUpgradeable.sol";
+import "@openzeppelin/contracts/utils/Counters.sol";
 import "@zk-kit/incremental-merkle-tree.sol/IncrementalBinaryTree.sol";
 import "./interfaces/IAttestationCheckerVerifier.sol";
 import "./interfaces/IPasswordCheckerVerifier.sol";
@@ -72,6 +73,7 @@ contract KetlAttestation is
   OwnableUpgradeable,
   ERC2771Recipient
 {
+  using Counters for Counters.Counter;
   using CountersUpgradeable for CountersUpgradeable.Counter;
   using IncrementalBinaryTree for IncrementalTreeData;
 
