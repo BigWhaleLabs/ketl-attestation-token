@@ -81,7 +81,9 @@ contract KetlAttestation is ERC1155, Ownable, Versioned, ERC2771Recipient {
   mapping(uint => IncrementalTreeData) public entanglementsTrees;
   mapping(uint => uint[]) public entanglements;
   mapping(uint => mapping(uint => bool)) public entanglementsRoots;
-  mapping(uint => bool) public attestationHashesEntangled;
+  // Attestations to total number of entanglements
+  mapping(uint => Counters.Counter) public attestationHashesEntangled;
+  mapping(uint => uint16) public maxEntanglementsPerAttestation;
 
   mapping(uint => Counters.Counter) public entanglementsCounts;
   mapping(uint => uint16) public minimumEntanglementCounts;
@@ -133,6 +135,15 @@ contract KetlAttestation is ERC1155, Ownable, Versioned, ERC2771Recipient {
     minimumEntanglementCounts[_id] = _minimumEntanglementCount;
   }
 
+  function setMaxEntanglementsPerAttestation(
+    uint _attestationHash,
+    uint16 _maxEntanglementsPerAttestation
+  ) public onlyOwner {
+    maxEntanglementsPerAttestation[
+      _attestationHash
+    ] = _maxEntanglementsPerAttestation;
+  }
+
   function setCurrentTokenId(uint32 _currentTokenId) public onlyOwner {
     currentTokenId = _currentTokenId;
   }
@@ -156,8 +167,10 @@ contract KetlAttestation is ERC1155, Ownable, Versioned, ERC2771Recipient {
     );
     // Check if this attestation has already been used
     require(
-      !attestationHashesEntangled[attestationHash],
-      "Attestation has already been entangled"
+      attestationHashesEntangled[attestationHash].current() == 0 ||
+        attestationHashesEntangled[attestationHash].current() <
+        maxEntanglementsPerAttestation[attestationHash],
+      "Attestation has been used too many times"
     );
     // Check the attestations merkle root
     require(
@@ -170,7 +183,7 @@ contract KetlAttestation is ERC1155, Ownable, Versioned, ERC2771Recipient {
       "Attestation public key is wrong"
     );
     // Save the entanglement fact
-    attestationHashesEntangled[attestationHash] = true;
+    attestationHashesEntangled[attestationHash].increment();
     // Add the entanglement to the tree
     entanglementsTrees[attestationType].insert(entanglement);
     // Save the entanglement in the array
