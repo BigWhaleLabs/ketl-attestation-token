@@ -1,5 +1,5 @@
 import { KetlAttestation } from '../typechain'
-import { ethers } from 'hardhat'
+import { ethers, upgrades } from 'hardhat'
 import { expect } from 'chai'
 import { getFakeAttestationCheckerVerifier, getMockProof } from './utils/fakes'
 
@@ -52,15 +52,18 @@ describe('KetlAttestation contract tests', () => {
         '0x0000000000000000000000000000000000000001'
       const forwarder = '0x0000000000000000000000000000000000000002'
 
-      const contract: KetlAttestation =
-        await this.ketlAttestationFactory.deploy(
+      const contract = (await upgrades.deployProxy(
+        this.ketlAttestationFactory,
+        [
           uri,
           version,
           attestorPublicKey,
           attestationCheckerVerifier,
           passwordCheckerVerifier,
-          forwarder
-        )
+          forwarder,
+        ],
+        { unsafeAllowLinkedLibraries: true }
+      )) as KetlAttestation
       expect(await contract.uri(0)).to.equal(
         'https://game.example/api/item/{id}.json'
       )
@@ -88,19 +91,27 @@ describe('KetlAttestation contract tests', () => {
     const maximumEntanglements = 3
 
     beforeEach(async function () {
-      this.ketlAttestation = await this.ketlAttestationFactory.deploy(
-        uri,
-        version,
-        attestorPublicKey,
-        this.fakeAttestationCheckerVerifier.address,
-        this.fakePasswordCheckerVerifier.address,
-        ethers.constants.AddressZero
-      )
+      this.ketlAttestation = (await upgrades.deployProxy(
+        this.ketlAttestationFactory,
+        [
+          uri,
+          version,
+          attestorPublicKey,
+          this.fakeAttestationCheckerVerifier.address,
+          this.fakePasswordCheckerVerifier.address,
+          ethers.constants.AddressZero,
+        ],
+        { unsafeAllowLinkedLibraries: true }
+      )) as KetlAttestation
       await this.ketlAttestation.deployed()
       await this.ketlAttestation.setAttestationMerkleRoot(
         attestationType,
         attestationMerkleRoot,
         minimumEntanglementCount
+      )
+      await this.ketlAttestation.setMaxEntanglementsPerAttestationType(
+        attestationType,
+        maximumEntanglements
       )
     })
     it('should register an entanglement with the correct proof', async function () {
@@ -137,36 +148,8 @@ describe('KetlAttestation contract tests', () => {
         await this.ketlAttestation.attestationHashesEntangled(attestationHash)
       ).to.equal(0)
     })
-    it('should allow a single entanglement only by default', async function () {
+    it('should allow for multiple entanglements to be registered with the same proof if maxEntanglementsPerAttestationType is set', async function () {
       await this.fakeAttestationCheckerVerifier.mock.verifyProof.returns(true)
-      const { a, b, c, input } = getMockProof(
-        attestationType,
-        attestationMerkleRoot,
-        entanglement,
-        attestationHash,
-        attestorPublicKey
-      )
-      await this.ketlAttestation
-        .connect(this.user)
-        .registerEntanglement(a, b, c, input)
-      expect(
-        await this.ketlAttestation.attestationHashesEntangled(attestationHash)
-      ).to.equal(1)
-      await expect(
-        this.ketlAttestation
-          .connect(this.user)
-          .registerEntanglement(a, b, c, input)
-      ).to.be.revertedWith('Attestation has been used too many times')
-      expect(
-        await this.ketlAttestation.attestationHashesEntangled(attestationHash)
-      ).to.equal(1)
-    })
-    it('should allow for multiple entanglements to be registered with the same proof if maxEntanglementsPerAttestation is set', async function () {
-      await this.fakeAttestationCheckerVerifier.mock.verifyProof.returns(true)
-      await this.ketlAttestation.setMaxEntanglementsPerAttestation(
-        attestationHash,
-        maximumEntanglements
-      )
       const { a, b, c, input } = getMockProof(
         attestationType,
         attestationMerkleRoot,
