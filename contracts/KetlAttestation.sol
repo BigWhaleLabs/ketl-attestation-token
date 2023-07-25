@@ -79,23 +79,27 @@ contract KetlAttestation is
   // Attestations
   uint32 public currentTokenId;
   uint public attestorPublicKey;
-  mapping(uint => uint) public attestationMerkleRoots;
+  mapping(uint attestationType => uint merkleRoot)
+    public attestationMerkleRoots;
   IAttestationCheckerVerifier public attestationCheckerVerifier;
   // Entanglements
-  mapping(uint => IncrementalTreeData) public entanglementsTrees;
-  mapping(uint => uint[]) public entanglements;
-  mapping(uint => mapping(uint => bool)) public entanglementsRoots;
+  mapping(uint attestationType => IncrementalTreeData)
+    public entanglementsTrees;
+  mapping(uint attestationType => uint[]) public entanglements;
+  mapping(uint attestationType => mapping(uint => bool))
+    public entanglementsRoots;
   // Attestations to total number of entanglements
-  mapping(uint => CountersUpgradeable.Counter)
+  mapping(uint attestationHash => CountersUpgradeable.Counter)
     public attestationHashesEntangled;
   mapping(uint attestationType => uint max)
     public maxEntanglementsPerAttestationType;
 
-  mapping(uint => CountersUpgradeable.Counter) public entanglementsCounts;
-  mapping(uint => uint16) public minimumEntanglementCounts;
+  mapping(uint attestationType => CountersUpgradeable.Counter)
+    public entanglementsCounts;
+  mapping(uint attestationType => uint16) public minimumEntanglementCounts;
   IPasswordCheckerVerifier public passwordCheckerVerifier;
   // Nullifiers
-  mapping(uint => bool) public nullifiers;
+  mapping(uint nullifier => bool) public nullifiers;
   // Legacy
   bool public legacyMintLocked;
 
