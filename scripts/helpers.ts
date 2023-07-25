@@ -1,6 +1,5 @@
 import { KetlAttestation, KetlAttestation__factory } from '../typechain'
 import { Provider } from '@ethersproject/providers'
-import { Result } from 'ethers/lib/utils'
 import { ethers } from 'ethers'
 
 const KetlAttestationInterface = new ethers.utils.Interface(
