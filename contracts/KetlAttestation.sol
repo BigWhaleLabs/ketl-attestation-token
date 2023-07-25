@@ -179,6 +179,10 @@ contract KetlAttestation is
     attestorPublicKey = _attestorPublicKey;
   }
 
+  function setVersion(string memory _version) external onlyOwner {
+    version = _version;
+  }
+
   function registerEntanglement(
     uint[2] memory a,
     uint[2][2] memory b,
