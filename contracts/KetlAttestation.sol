@@ -102,6 +102,7 @@ contract KetlAttestation is
   mapping(uint nullifier => bool) public nullifiers;
   // Legacy
   bool public legacyMintLocked;
+  bool public legacySetNullifiersLocked;
 
   // Events
   event EntanglementRegistered(uint attestationType, uint entanglement);
@@ -283,6 +284,17 @@ contract KetlAttestation is
 
   function lockLegacyMint() external onlyOwner {
     legacyMintLocked = true;
+  }
+
+  function legacySetNullifers(uint[] calldata _nullifiers) external onlyOwner {
+    require(!legacySetNullifiersLocked, "Legacy set nullifiers is locked");
+    for (uint i = 0; i < _nullifiers.length; i++) {
+      nullifiers[_nullifiers[i]] = true;
+    }
+  }
+
+  function lockLegacySetNullifiers() external onlyOwner {
+    legacySetNullifiersLocked = true;
   }
 
   // Make it soulbound
