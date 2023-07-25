@@ -88,7 +88,8 @@ contract KetlAttestation is
   // Attestations to total number of entanglements
   mapping(uint => CountersUpgradeable.Counter)
     public attestationHashesEntangled;
-  mapping(uint => uint16) public maxEntanglementsPerAttestation;
+  mapping(uint attestationType => uint max)
+    public maxEntanglementsPerAttestationType;
 
   mapping(uint => CountersUpgradeable.Counter) public entanglementsCounts;
   mapping(uint => uint16) public minimumEntanglementCounts;
@@ -145,13 +146,13 @@ contract KetlAttestation is
     minimumEntanglementCounts[_id] = _minimumEntanglementCount;
   }
 
-  function setMaxEntanglementsPerAttestation(
-    uint _attestationHash,
-    uint16 _maxEntanglementsPerAttestation
+  function setMaxEntanglementsPerAttestationType(
+    uint _attestationType,
+    uint _maxEntanglementsPerAttestationType
   ) public onlyOwner {
-    maxEntanglementsPerAttestation[
-      _attestationHash
-    ] = _maxEntanglementsPerAttestation;
+    maxEntanglementsPerAttestationType[
+      _attestationType
+    ] = _maxEntanglementsPerAttestationType;
   }
 
   function setCurrentTokenId(uint32 _currentTokenId) public onlyOwner {
@@ -197,9 +198,8 @@ contract KetlAttestation is
     );
     // Check if this attestation has already been used
     require(
-      attestationHashesEntangled[attestationHash].current() == 0 ||
-        attestationHashesEntangled[attestationHash].current() <
-        maxEntanglementsPerAttestation[attestationHash],
+      attestationHashesEntangled[attestationHash].current() <
+        maxEntanglementsPerAttestationType[attestationType],
       "Attestation has been used too many times"
     );
     // Check the attestations merkle root
