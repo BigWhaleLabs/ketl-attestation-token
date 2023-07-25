@@ -117,7 +117,7 @@ async function main() {
       passwordVerifierAddress,
       forwarder,
     ],
-    { initializer: 'initializer' }
+    { initializer: 'initializer', unsafeAllowLinkedLibraries: true }
   )
 
   console.log(
