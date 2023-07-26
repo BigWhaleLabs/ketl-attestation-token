@@ -1,0 +1,410 @@
+{
+  "manifestVersion": "3.2",
+  "admin": {
+    "address": "0x6beD7599798c6c6E57182509F1459fa45E7D5071",
+    "txHash": "0xa9de49a68461af9ec33e29b1ab4733af0bfd0433422d7f2e00095ae3f05e57fe"
+  },
+  "proxies": [
+    {
+      "address": "0x0c126daEe63509728704101FB2084ad0D98C2F12",
+      "txHash": "0x124f0693bc8761c3efd2eef0296e468f4551883f8d45d64816890e5d46efd555",
+      "kind": "transparent"
+    }
+  ],
+  "impls": {
+    "c1272f3e6294506c870df40c19cb4413a626b7ee951d4a15af3e5c58a13c122d": {
+      "address": "0x241d06130738B5453Ef667CC80FEbb4517d142Ec",
+      "txHash": "0xd72cb29a2581541ef354016cae537a26114ee790eeb39fc8d46fef0a94f8dfda",
+      "layout": {
+        "solcVersion": "0.8.19",
+        "storage": [
+          {
+            "label": "_initialized",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_uint8",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:63",
+            "retypedFrom": "bool"
+          },
+          {
+            "label": "_initializing",
+            "offset": 1,
+            "slot": "0",
+            "type": "t_bool",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:68"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ContextUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol:36"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "51",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ERC165Upgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/utils/introspection/ERC165Upgradeable.sol:41"
+          },
+          {
+            "label": "_balances",
+            "offset": 0,
+            "slot": "101",
+            "type": "t_mapping(t_uint256,t_mapping(t_address,t_uint256))",
+            "contract": "ERC1155Upgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/token/ERC1155/ERC1155Upgradeable.sol:25"
+          },
+          {
+            "label": "_operatorApprovals",
+            "offset": 0,
+            "slot": "102",
+            "type": "t_mapping(t_address,t_mapping(t_address,t_bool))",
+            "contract": "ERC1155Upgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/token/ERC1155/ERC1155Upgradeable.sol:28"
+          },
+          {
+            "label": "_uri",
+            "offset": 0,
+            "slot": "103",
+            "type": "t_string_storage",
+            "contract": "ERC1155Upgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/token/ERC1155/ERC1155Upgradeable.sol:31"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "104",
+            "type": "t_array(t_uint256)47_storage",
+            "contract": "ERC1155Upgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/token/ERC1155/ERC1155Upgradeable.sol:508"
+          },
+          {
+            "label": "_owner",
+            "offset": 0,
+            "slot": "151",
+            "type": "t_address",
+            "contract": "OwnableUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:22"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "152",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "OwnableUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:94"
+          },
+          {
+            "label": "_trustedForwarder",
+            "offset": 0,
+            "slot": "201",
+            "type": "t_address",
+            "contract": "ERC2771Recipient",
+            "src": "@opengsn/contracts/src/ERC2771Recipient.sol:21"
+          },
+          {
+            "label": "version",
+            "offset": 0,
+            "slot": "202",
+            "type": "t_string_storage",
+            "contract": "KetlAttestation",
+            "src": "contracts/KetlAttestation.sol:80"
+          },
+          {
+            "label": "currentTokenId",
+            "offset": 0,
+            "slot": "203",
+            "type": "t_uint32",
+            "contract": "KetlAttestation",
+            "src": "contracts/KetlAttestation.sol:81"
+          },
+          {
+            "label": "attestorPublicKey",
+            "offset": 0,
+            "slot": "204",
+            "type": "t_uint256",
+            "contract": "KetlAttestation",
+            "src": "contracts/KetlAttestation.sol:82"
+          },
+          {
+            "label": "attestationMerkleRoots",
+            "offset": 0,
+            "slot": "205",
+            "type": "t_mapping(t_uint256,t_uint256)",
+            "contract": "KetlAttestation",
+            "src": "contracts/KetlAttestation.sol:82"
+          },
+          {
+            "label": "attestationCheckerVerifier",
+            "offset": 0,
+            "slot": "206",
+            "type": "t_contract(IAttestationCheckerVerifier)4029",
+            "contract": "KetlAttestation",
+            "src": "contracts/KetlAttestation.sol:84"
+          },
+          {
+            "label": "entanglementsTrees",
+            "offset": 0,
+            "slot": "207",
+            "type": "t_mapping(t_uint256,t_struct(IncrementalTreeData)2375_storage)",
+            "contract": "KetlAttestation",
+            "src": "contracts/KetlAttestation.sol:86"
+          },
+          {
+            "label": "entanglements",
+            "offset": 0,
+            "slot": "208",
+            "type": "t_mapping(t_uint256,t_array(t_uint256)dyn_storage)",
+            "contract": "KetlAttestation",
+            "src": "contracts/KetlAttestation.sol:88"
+          },
+          {
+            "label": "entanglementsRoots",
+            "offset": 0,
+            "slot": "209",
+            "type": "t_mapping(t_uint256,t_mapping(t_uint256,t_bool))",
+            "contract": "KetlAttestation",
+            "src": "contracts/KetlAttestation.sol:89"
+          },
+          {
+            "label": "attestationHashesEntangled",
+            "offset": 0,
+            "slot": "210",
+            "type": "t_mapping(t_uint256,t_struct(Counter)2228_storage)",
+            "contract": "KetlAttestation",
+            "src": "contracts/KetlAttestation.sol:92"
+          },
+          {
+            "label": "maxEntanglementsPerAttestationType",
+            "offset": 0,
+            "slot": "211",
+            "type": "t_mapping(t_uint256,t_uint256)",
+            "contract": "KetlAttestation",
+            "src": "contracts/KetlAttestation.sol:95"
+          },
+          {
+            "label": "entanglementsCounts",
+            "offset": 0,
+            "slot": "212",
+            "type": "t_mapping(t_uint256,t_struct(Counter)2228_storage)",
+            "contract": "KetlAttestation",
+            "src": "contracts/KetlAttestation.sol:97"
+          },
+          {
+            "label": "minimumEntanglementCounts",
+            "offset": 0,
+            "slot": "213",
+            "type": "t_mapping(t_uint256,t_uint16)",
+            "contract": "KetlAttestation",
+            "src": "contracts/KetlAttestation.sol:99"
+          },
+          {
+            "label": "passwordCheckerVerifier",
+            "offset": 0,
+            "slot": "214",
+            "type": "t_contract(IPasswordCheckerVerifier)4055",
+            "contract": "KetlAttestation",
+            "src": "contracts/KetlAttestation.sol:100"
+          },
+          {
+            "label": "nullifiers",
+            "offset": 0,
+            "slot": "215",
+            "type": "t_mapping(t_uint256,t_bool)",
+            "contract": "KetlAttestation",
+            "src": "contracts/KetlAttestation.sol:102"
+          },
+          {
+            "label": "legacyMintLocked",
+            "offset": 0,
+            "slot": "216",
+            "type": "t_bool",
+            "contract": "KetlAttestation",
+            "src": "contracts/KetlAttestation.sol:105"
+          },
+          {
+            "label": "legacySetNullifiersLocked",
+            "offset": 1,
+            "slot": "216",
+            "type": "t_bool",
+            "contract": "KetlAttestation",
+            "src": "contracts/KetlAttestation.sol:106"
+          },
+          {
+            "label": "legacyRegisterEntanglementLocked",
+            "offset": 2,
+            "slot": "216",
+            "type": "t_bool",
+            "contract": "KetlAttestation",
+            "src": "contracts/KetlAttestation.sol:106"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_array(t_uint256)2_storage": {
+            "label": "uint256[2]",
+            "numberOfBytes": "64"
+          },
+          "t_array(t_uint256)47_storage": {
+            "label": "uint256[47]",
+            "numberOfBytes": "1504"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]",
+            "numberOfBytes": "1568"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]",
+            "numberOfBytes": "1600"
+          },
+          "t_array(t_uint256)dyn_storage": {
+            "label": "uint256[]",
+            "numberOfBytes": "32"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_contract(IAttestationCheckerVerifier)4029": {
+            "label": "contract IAttestationCheckerVerifier",
+            "numberOfBytes": "20"
+          },
+          "t_contract(IPasswordCheckerVerifier)4055": {
+            "label": "contract IPasswordCheckerVerifier",
+            "numberOfBytes": "20"
+          },
+          "t_mapping(t_address,t_bool)": {
+            "label": "mapping(address => bool)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_address,t_mapping(t_address,t_bool))": {
+            "label": "mapping(address => mapping(address => bool))",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_address,t_uint256)": {
+            "label": "mapping(address => uint256)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_array(t_uint256)2_storage)": {
+            "label": "mapping(uint256 => uint256[2])",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_array(t_uint256)dyn_storage)": {
+            "label": "mapping(uint256 => uint256[])",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_bool)": {
+            "label": "mapping(uint256 => bool)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_mapping(t_address,t_uint256))": {
+            "label": "mapping(uint256 => mapping(address => uint256))",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_mapping(t_uint256,t_bool))": {
+            "label": "mapping(uint256 => mapping(uint256 => bool))",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_struct(Counter)2228_storage)": {
+            "label": "mapping(uint256 => struct CountersUpgradeable.Counter)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_struct(IncrementalTreeData)2375_storage)": {
+            "label": "mapping(uint256 => struct IncrementalTreeData)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_uint16)": {
+            "label": "mapping(uint256 => uint16)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_uint256)": {
+            "label": "mapping(uint256 => uint256)",
+            "numberOfBytes": "32"
+          },
+          "t_string_storage": {
+            "label": "string",
+            "numberOfBytes": "32"
+          },
+          "t_struct(Counter)2228_storage": {
+            "label": "struct CountersUpgradeable.Counter",
+            "members": [
+              {
+                "label": "_value",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "0"
+              }
+            ],
+            "numberOfBytes": "32"
+          },
+          "t_struct(IncrementalTreeData)2375_storage": {
+            "label": "struct IncrementalTreeData",
+            "members": [
+              {
+                "label": "depth",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "root",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "numberOfLeaves",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "zeroes",
+                "type": "t_mapping(t_uint256,t_uint256)",
+                "offset": 0,
+                "slot": "3"
+              },
+              {
+                "label": "lastSubtrees",
+                "type": "t_mapping(t_uint256,t_array(t_uint256)2_storage)",
+                "offset": 0,
+                "slot": "4"
+              },
+              {
+                "label": "useDefaultZeroes",
+                "type": "t_bool",
+                "offset": 0,
+                "slot": "5"
+              }
+            ],
+            "numberOfBytes": "192"
+          },
+          "t_uint16": {
+            "label": "uint16",
+            "numberOfBytes": "2"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          },
+          "t_uint32": {
+            "label": "uint32",
+            "numberOfBytes": "4"
+          },
+          "t_uint8": {
+            "label": "uint8",
+            "numberOfBytes": "1"
+          }
+        }
+      }
+    }
+  }
+}
