@@ -67,6 +67,7 @@ async function main() {
     baseURI,
     incrementalBinaryTreeLibAddress,
     shouldTransferOldAccounts,
+    maxEntanglementsPerAttestationType,
   } = await prompt.get({
     properties: {
       oldKetlAttestationContractAddress: {
@@ -108,6 +109,11 @@ async function main() {
         type: 'boolean',
         required: true,
         default: true,
+      },
+      maxEntanglementsPerAttestationType: {
+        type: 'number',
+        require: true,
+        default: 3,
       },
     },
   })
@@ -214,7 +220,7 @@ async function main() {
       )
       await newKetlAttestationContract.setMaxEntanglementsPerAttestationType(
         attestationType,
-        3
+        maxEntanglementsPerAttestationType
       )
     }
 
