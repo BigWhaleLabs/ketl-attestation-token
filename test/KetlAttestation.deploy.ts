@@ -4,11 +4,13 @@ import { KetlAttestation, KetlAttestation__factory } from '../typechain'
 import { ethers, upgrades } from 'hardhat'
 import { expect } from 'chai'
 import { getFakeAttestationCheckerVerifier } from './utils/fakes'
-import { getLegacyTokenHolders } from '../scripts/helpers'
-import legacyMintCalldata from '../legacy/dev-mint.json'
-import legacyRegisterEntanglementCalldata from '../legacy/dev-register-entanglements.json'
+import {
+  getLegacyMintCalldata,
+  getLegacyRegisterEntanglementCalldata,
+  getLegacyTokenHolders,
+} from '../scripts/helpers'
 
-describe.only('KetlAttestation Deploy Tests', () => {
+describe('KetlAttestation Deploy Tests', () => {
   it('should be able to deploy KetlAttestation and populate data correctly', async function () {
     const uri = 'https://game.example/api/item/{id}.json'
     const version = '0.0.1'
@@ -108,16 +110,20 @@ describe.only('KetlAttestation Deploy Tests', () => {
       DEV_KETL_ATTESTATION_CONTRACT,
       realProvider
     )
-    console.log(holders)
     await this.ketlAttestation.legacyBatchMint(holders, attestationTypes)
     await this.ketlAttestation.lockLegacyMint()
     console.log('Completed locking legacy mint')
 
+    const legacyRegisterEntanglementCalldata =
+      await getLegacyRegisterEntanglementCalldata(
+        DEV_KETL_ATTESTATION_CONTRACT,
+        realProvider
+      )
     for (const originalCalldata of legacyRegisterEntanglementCalldata) {
       const attestationType = BigNumber.from(
         originalCalldata.inputs[0]
       ).toNumber()
-      const calldata = [
+      await this.ketlAttestation.registerEntanglement(
         originalCalldata.a,
         originalCalldata.b,
         originalCalldata.c,
@@ -127,17 +133,53 @@ describe.only('KetlAttestation Deploy Tests', () => {
           originalCalldata.inputs[2],
           originalCalldata.inputs[3],
           originalCalldata.inputs[4],
-        ],
-      ] as const
-      await this.ketlAttestation.registerEntanglement(...calldata)
+        ]
+      )
     }
     console.log('Completed legacy register entanglement')
 
+    const legacyMintCalldata = await getLegacyMintCalldata(
+      DEV_KETL_ATTESTATION_CONTRACT,
+      realProvider
+    )
     const nullifiers = Object.values(legacyMintCalldata).map((calldata) =>
       BigNumber.from(calldata.inputs[1])
     )
     await this.ketlAttestation.legacySetNullifers(nullifiers)
     await this.ketlAttestation.lockLegacySetNullifiers()
     console.log('Completed legacy set nullifiers')
+
+    // Check if token balances, entanglement counts, merkle roots and nullifiers are correct
+    expect(
+      await this.ketlAttestation.balanceOf(
+        '0x006778056f3687c8e717431fd128a4a411256855',
+        2
+      )
+    ).to.equal(1)
+    expect(
+      await this.ketlAttestation.balanceOf(
+        '0x00baf0ccacf5138186e9255c33d4ad5813a126f6',
+        3
+      )
+    ).to.equal(1)
+    expect(await this.ketlAttestation.entanglementsCounts(0)).to.equal(39)
+    expect(await this.ketlAttestation.entanglementsCounts(1)).to.equal(16)
+    expect(await this.ketlAttestation.entanglementsCounts(2)).to.equal(18)
+    expect(await this.ketlAttestation.entanglementsCounts(3)).to.equal(15)
+    expect(await this.ketlAttestation.attestationMerkleRoots(0)).to.equal(
+      '5335291072005543461858606182043733799865352927066551747970584326785146418876'
+    )
+    expect(await this.ketlAttestation.attestationMerkleRoots(1)).to.equal(
+      '5418361909092638240736490124596229346210919292114889237217958430414034473557'
+    )
+    expect(await this.ketlAttestation.attestationMerkleRoots(2)).to.equal(
+      '10381400511710919614534315002504293828042363615301039129800554466533909625238'
+    )
+    expect(await this.ketlAttestation.attestationMerkleRoots(3)).to.equal(
+      '12614643060872101993059706924886792216216998862096566160866878914684590358221'
+    )
+    expect(await this.ketlAttestation.nullifiers(nullifiers[0])).to.equal(true)
+    expect(await this.ketlAttestation.nullifiers(nullifiers[1])).to.equal(true)
+    expect(await this.ketlAttestation.nullifiers(nullifiers[2])).to.equal(true)
   }).timeout(1_000_000)
 })
