@@ -30,7 +30,8 @@
     "lint": "prettier --check . && eslint --max-warnings 0 --ext ts scripts test && yarn eth-lint",
     "prettify": "prettier --write .",
     "release": "np",
-    "prepublishOnly": "yarn build && yarn tsc --skipLibCheck"
+    "prepublishOnly": "yarn build && yarn tsc --skipLibCheck",
+    "set-current-token-id": "yarn hardhat run --network deploy scripts/setCurrentTokenId.ts"
   },
   "devDependencies": {
     "@ethersproject/providers": "^5.7.2",
