@@ -8,7 +8,7 @@ import {
   PROD_KETL_ATTESTATION_CONTRACT,
 } from '@big-whale-labs/constants'
 import { BigNumber, utils } from 'ethers'
-import { KetlAttestation, KetlAttestation__factory } from 'typechain'
+import { KetlAttestation, KetlAttestation__factory } from '../typechain'
 import { ethers, run, upgrades } from 'hardhat'
 import {
   getLegacyMintCalldata,
@@ -231,23 +231,17 @@ async function main() {
         oldKetlAttestationContractAddress,
         provider
       )
-    for (const originalCalldata of legacyRegisterEntanglementCalldata) {
-      const attestationType = BigNumber.from(
-        originalCalldata.inputs[0]
-      ).toNumber()
-      await newKetlAttestationContract.registerEntanglement(
-        originalCalldata.a,
-        originalCalldata.b,
-        originalCalldata.c,
-        [
-          originalCalldata.inputs[0],
-          attestationMerkleRoots[attestationType],
-          originalCalldata.inputs[2],
-          originalCalldata.inputs[3],
-          originalCalldata.inputs[4],
-        ]
+    for (const calldata of legacyRegisterEntanglementCalldata) {
+      const attestationType = BigNumber.from(calldata.inputs[0])
+      const attestationHash = BigNumber.from(calldata.inputs[3])
+      const entanglement = BigNumber.from(calldata.inputs[2])
+      await newKetlAttestationContract.legacyRegisterEntanglement(
+        attestationType,
+        attestationHash,
+        entanglement
       )
     }
+    await newKetlAttestationContract.lockLegacyRegisterEntanglement()
     console.log('Completed legacy register entanglement')
 
     const legacyMintCalldata = getLegacyMintCalldata(

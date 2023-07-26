@@ -119,23 +119,17 @@ describe('KetlAttestation Deploy Tests', () => {
         DEV_KETL_ATTESTATION_CONTRACT,
         realProvider
       )
-    for (const originalCalldata of legacyRegisterEntanglementCalldata) {
-      const attestationType = BigNumber.from(
-        originalCalldata.inputs[0]
-      ).toNumber()
-      await this.ketlAttestation.registerEntanglement(
-        originalCalldata.a,
-        originalCalldata.b,
-        originalCalldata.c,
-        [
-          originalCalldata.inputs[0],
-          attestationMerkleRoots[attestationType],
-          originalCalldata.inputs[2],
-          originalCalldata.inputs[3],
-          originalCalldata.inputs[4],
-        ]
+    for (const calldata of legacyRegisterEntanglementCalldata) {
+      const attestationType = BigNumber.from(calldata.inputs[0])
+      const attestationHash = BigNumber.from(calldata.inputs[3])
+      const entanglement = BigNumber.from(calldata.inputs[2])
+      await this.ketlAttestation.legacyRegisterEntanglement(
+        attestationType,
+        attestationHash,
+        entanglement
       )
     }
+    await this.ketlAttestation.lockLegacyRegisterEntanglement()
     console.log('Completed legacy register entanglement')
 
     const legacyMintCalldata = await getLegacyMintCalldata(

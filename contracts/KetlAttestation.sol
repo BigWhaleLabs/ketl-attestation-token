@@ -103,6 +103,7 @@ contract KetlAttestation is
   // Legacy
   bool public legacyMintLocked;
   bool public legacySetNullifiersLocked;
+  bool public legacyRegisterEntanglementLocked;
 
   // Events
   event EntanglementRegistered(uint attestationType, uint entanglement);
@@ -284,6 +285,29 @@ contract KetlAttestation is
 
   function lockLegacyMint() external onlyOwner {
     legacyMintLocked = true;
+  }
+
+  function legacyRegisterEntanglement(
+    uint attestationType,
+    uint attestationHash,
+    uint entanglement
+  ) external onlyOwner {
+    require(
+      !legacyRegisterEntanglementLocked,
+      "Legacy register entanglement is locked"
+    );
+    attestationHashesEntangled[attestationHash].increment();
+    entanglementsTrees[attestationType].insert(entanglement);
+    entanglements[attestationType].push(entanglement);
+    entanglementsCounts[attestationType].increment();
+    entanglementsRoots[attestationType][
+      entanglementsTrees[attestationType].root
+    ] = true;
+    emit EntanglementRegistered(attestationType, entanglement);
+  }
+
+  function lockLegacyRegisterEntanglement() external onlyOwner {
+    legacyRegisterEntanglementLocked = true;
   }
 
   function legacySetNullifers(uint[] calldata _nullifiers) external onlyOwner {
