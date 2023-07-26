@@ -174,14 +174,6 @@ async function main() {
   try {
     await run('verify:verify', {
       address: contractImplementationAddress,
-      constructorArguments: [
-        baseURI,
-        version,
-        attestorPublicKey,
-        attestationVerifierAddress,
-        passwordVerifierAddress,
-        forwarder,
-      ],
     })
   } catch (err) {
     console.error(
@@ -213,23 +205,32 @@ async function main() {
         await oldKetlAttesationContract.minimumEntanglementCounts(
           attestationType
         )
-      await newKetlAttestationContract.setAttestationMerkleRoot(
-        attestationType,
-        attestationMerkleRoot,
-        minimumEntanglementCount
-      )
-      await newKetlAttestationContract.setMaxEntanglementsPerAttestationType(
-        attestationType,
-        maxEntanglementsPerAttestationType
-      )
+      const setAttestationMerkleRootTx =
+        await newKetlAttestationContract.setAttestationMerkleRoot(
+          attestationType,
+          attestationMerkleRoot,
+          minimumEntanglementCount
+        )
+      await setAttestationMerkleRootTx.wait()
+      const setMaxEntanglementsTx =
+        await newKetlAttestationContract.setMaxEntanglementsPerAttestationType(
+          attestationType,
+          maxEntanglementsPerAttestationType
+        )
+      await setMaxEntanglementsTx.wait()
     }
 
     const [holders, attestationTypes] = await getLegacyTokenHolders(
       oldKetlAttestationContractAddress,
       provider
     )
-    await newKetlAttestationContract.legacyBatchMint(holders, attestationTypes)
-    await newKetlAttestationContract.lockLegacyMint()
+    const batchMintTx = await newKetlAttestationContract.legacyBatchMint(
+      holders,
+      attestationTypes
+    )
+    await batchMintTx.wait()
+    const lockMintTx = await newKetlAttestationContract.lockLegacyMint()
+    await lockMintTx.wait()
     console.log('Completed locking legacy mint')
 
     const legacyRegisterEntanglementCalldata =
@@ -241,13 +242,18 @@ async function main() {
       const attestationType = BigNumber.from(calldata.input[0])
       const attestationHash = BigNumber.from(calldata.input[3])
       const entanglement = BigNumber.from(calldata.input[2])
-      await newKetlAttestationContract.legacyRegisterEntanglement(
-        attestationType,
-        attestationHash,
-        entanglement
-      )
+      const registerEntanglementTx =
+        await newKetlAttestationContract.legacyRegisterEntanglement(
+          attestationType,
+          attestationHash,
+          entanglement
+        )
+      await registerEntanglementTx.wait()
     }
-    await newKetlAttestationContract.lockLegacyRegisterEntanglement()
+    const lockRegisterEntanglementTx =
+      await newKetlAttestationContract.lockLegacyRegisterEntanglement()
+    await lockRegisterEntanglementTx.wait()
+
     console.log('Completed legacy register entanglement')
 
     const legacyMintCalldata = await getLegacyMintCalldata(
@@ -257,8 +263,13 @@ async function main() {
     const nullifiers = legacyMintCalldata.map((calldata) =>
       BigNumber.from(calldata.input[1])
     )
-    await newKetlAttestationContract.legacySetNullifers(nullifiers)
-    await newKetlAttestationContract.lockLegacySetNullifiers()
+    const setNullifiersTx = await newKetlAttestationContract.legacySetNullifers(
+      nullifiers
+    )
+    await setNullifiersTx.wait()
+    const lockNullifiersTx =
+      await newKetlAttestationContract.lockLegacySetNullifiers()
+    await lockNullifiersTx.wait()
     console.log('Completed legacy set nullifiers')
   }
 }
