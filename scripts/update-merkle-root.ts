@@ -137,7 +137,7 @@ async function main() {
         },
       },
     })
-    if (abort) {
+    if (!abort) {
       console.log('Aborting!')
       return
     }
