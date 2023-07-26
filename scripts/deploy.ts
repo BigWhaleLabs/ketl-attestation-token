@@ -129,7 +129,7 @@ async function main() {
       passwordVerifierAddress,
       forwarder,
     ],
-    { initializer: 'initializer', unsafeAllowLinkedLibraries: true }
+    { initializer: 'initialize', unsafeAllowLinkedLibraries: true }
   )) as KetlAttestation
 
   console.log(
