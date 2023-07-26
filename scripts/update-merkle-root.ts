@@ -133,7 +133,7 @@ async function main() {
           type: 'boolean',
           required: true,
           default: true,
-          description: `Last chance to abort! We're updating ${id} with merkleRoot ${merkleTreeProof.root} and ${attestationHashes.length} records. Continue?`,
+          description: `⚠️ Last chance to abort! We're updating ${id} on both production and development with merkleRoot ${merkleTreeProof.root} and ${attestationHashes.length} records. Continue?`,
         },
       },
     })
