@@ -120,9 +120,9 @@ describe('KetlAttestation Deploy Tests', () => {
         realProvider
       )
     for (const calldata of legacyRegisterEntanglementCalldata) {
-      const attestationType = BigNumber.from(calldata.inputs[0])
-      const attestationHash = BigNumber.from(calldata.inputs[3])
-      const entanglement = BigNumber.from(calldata.inputs[2])
+      const attestationType = BigNumber.from(calldata.input[0])
+      const attestationHash = BigNumber.from(calldata.input[3])
+      const entanglement = BigNumber.from(calldata.input[2])
       await this.ketlAttestation.legacyRegisterEntanglement(
         attestationType,
         attestationHash,
@@ -136,8 +136,8 @@ describe('KetlAttestation Deploy Tests', () => {
       DEV_KETL_ATTESTATION_CONTRACT,
       realProvider
     )
-    const nullifiers = Object.values(legacyMintCalldata).map((calldata) =>
-      BigNumber.from(calldata.inputs[1])
+    const nullifiers = legacyMintCalldata.map((calldata) =>
+      BigNumber.from(calldata.input[1])
     )
     await this.ketlAttestation.legacySetNullifers(nullifiers)
     await this.ketlAttestation.lockLegacySetNullifiers()

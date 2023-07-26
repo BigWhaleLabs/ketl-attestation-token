@@ -129,7 +129,7 @@ export async function getLegacyRegisterEntanglementCalldata(
     a: Parameters<KetlAttestation['registerEntanglement']>[0]
     b: Parameters<KetlAttestation['registerEntanglement']>[1]
     c: Parameters<KetlAttestation['registerEntanglement']>[2]
-    inputs: Parameters<KetlAttestation['registerEntanglement']>[3]
+    input: Parameters<KetlAttestation['registerEntanglement']>[3]
   }[] = []
   for (const log of logs) {
     const tx = await provider.getTransaction(log.transactionHash)
@@ -142,7 +142,7 @@ export async function getLegacyRegisterEntanglementCalldata(
       a: calldata.args.a,
       b: calldata.args.b,
       c: calldata.args.c,
-      inputs: calldata.args.input,
+      input: calldata.args.input,
     })
   }
   return output
@@ -164,7 +164,7 @@ export async function getLegacyMintCalldata(
     a: Parameters<KetlAttestation['mint']>[0]
     b: Parameters<KetlAttestation['mint']>[1]
     c: Parameters<KetlAttestation['mint']>[2]
-    inputs: Parameters<KetlAttestation['mint']>[3]
+    input: Parameters<KetlAttestation['mint']>[3]
   }[] = []
   for (const log of logs) {
     const tx = await provider.getTransaction(log.transactionHash)
@@ -177,7 +177,7 @@ export async function getLegacyMintCalldata(
       a: calldata.args.a,
       b: calldata.args.b,
       c: calldata.args.c,
-      inputs: calldata.args.input,
+      input: calldata.args.input,
     })
   }
   return output

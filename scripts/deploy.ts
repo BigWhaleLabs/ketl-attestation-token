@@ -238,9 +238,9 @@ async function main() {
         provider
       )
     for (const calldata of legacyRegisterEntanglementCalldata) {
-      const attestationType = BigNumber.from(calldata.inputs[0])
-      const attestationHash = BigNumber.from(calldata.inputs[3])
-      const entanglement = BigNumber.from(calldata.inputs[2])
+      const attestationType = BigNumber.from(calldata.input[0])
+      const attestationHash = BigNumber.from(calldata.input[3])
+      const entanglement = BigNumber.from(calldata.input[2])
       await newKetlAttestationContract.legacyRegisterEntanglement(
         attestationType,
         attestationHash,
@@ -250,12 +250,12 @@ async function main() {
     await newKetlAttestationContract.lockLegacyRegisterEntanglement()
     console.log('Completed legacy register entanglement')
 
-    const legacyMintCalldata = getLegacyMintCalldata(
+    const legacyMintCalldata = await getLegacyMintCalldata(
       oldKetlAttestationContractAddress,
       provider
     )
-    const nullifiers = Object.values(legacyMintCalldata).map((calldata) =>
-      BigNumber.from(calldata.inputs[1])
+    const nullifiers = legacyMintCalldata.map((calldata) =>
+      BigNumber.from(calldata.input[1])
     )
     await newKetlAttestationContract.legacySetNullifers(nullifiers)
     await newKetlAttestationContract.lockLegacySetNullifiers()
