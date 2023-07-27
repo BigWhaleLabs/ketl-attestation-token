@@ -23,7 +23,7 @@ async function main() {
       currentTokenId: {
         type: 'number',
         require: true,
-        default: 3,
+        default: 4,
       },
     },
   })

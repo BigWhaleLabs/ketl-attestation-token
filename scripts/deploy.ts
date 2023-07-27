@@ -68,6 +68,7 @@ async function main() {
     incrementalBinaryTreeLibAddress,
     shouldTransferOldAccounts,
     maxEntanglementsPerAttestationType,
+    currentTokenId,
   } = await prompt.get({
     properties: {
       oldKetlAttestationContractAddress: {
@@ -114,6 +115,11 @@ async function main() {
         type: 'number',
         require: true,
         default: 3,
+      },
+      currentTokenId: {
+        type: 'number',
+        require: true,
+        default: 4,
       },
     },
   })
@@ -271,6 +277,8 @@ async function main() {
       await newKetlAttestationContract.lockLegacySetNullifiers()
     await lockNullifiersTx.wait()
     console.log('Completed legacy set nullifiers')
+
+    await newKetlAttestationContract.setCurrentTokenId(currentTokenId)
   }
 }
 
