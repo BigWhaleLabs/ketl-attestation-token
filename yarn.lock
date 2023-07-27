@@ -73,10 +73,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@big-whale-labs/constants@npm:^0.2.10":
-  version: 0.2.10
-  resolution: "@big-whale-labs/constants@npm:0.2.10"
-  checksum: 3f293b5cadb8fa2099617cf12d805158781fc3e07550f1faeedd00190927174de8b1979be6c873c3318445684a2f8b750e78cc997700910e8f41b1ddcf7e0547
+"@big-whale-labs/constants@npm:^0.2.12":
+  version: 0.2.12
+  resolution: "@big-whale-labs/constants@npm:0.2.12"
+  checksum: 9bc15041ac9819bfdf15cf068c6e440304b9bf65e65d0ab00169fd09f50581d077f6b32bf311be19019c75eb9aada411759ca763ac4c695365e18286fa0b1043
   languageName: node
   linkType: hard
 
@@ -91,7 +91,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@big-whale-labs/ketl-attestation-token@workspace:."
   dependencies:
-    "@big-whale-labs/constants": ^0.2.10
+    "@big-whale-labs/constants": ^0.2.12
     "@big-whale-labs/ketl-allow-map-contract": ^0.0.3
     "@big-whale-labs/versioned-contract": ^1.0.2
     "@ethersproject/providers": ^5.7.2

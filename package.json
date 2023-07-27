@@ -76,7 +76,7 @@
   },
   "packageManager": "yarn@3.5.1",
   "dependencies": {
-    "@big-whale-labs/constants": "^0.2.10",
+    "@big-whale-labs/constants": "^0.2.12",
     "@big-whale-labs/ketl-allow-map-contract": "^0.0.3",
     "@big-whale-labs/versioned-contract": "^1.0.2",
     "@openzeppelin/hardhat-upgrades": "^1.26.0",
