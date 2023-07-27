@@ -127,9 +127,9 @@ async function main() {
       attestationHashes
     )
 
-    const { abort } = await prompt.get({
+    const { proceed } = await prompt.get({
       properties: {
-        abort: {
+        proceed: {
           type: 'boolean',
           required: true,
           default: true,
@@ -137,7 +137,7 @@ async function main() {
         },
       },
     })
-    if (!abort) {
+    if (!proceed) {
       console.log('Aborting!')
       return
     }
