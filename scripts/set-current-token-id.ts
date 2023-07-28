@@ -1,4 +1,7 @@
-import { PROD_KETL_ATTESTATION_CONTRACT } from '@big-whale-labs/constants'
+import {
+  DEV_KETL_ATTESTATION_CONTRACT,
+  PROD_KETL_ATTESTATION_CONTRACT,
+} from '@big-whale-labs/constants'
 import { ethers } from 'hardhat'
 import prompt from 'prompt'
 
@@ -17,7 +20,7 @@ async function main() {
         required: true,
         default: isProduction
           ? PROD_KETL_ATTESTATION_CONTRACT
-          : '0x0c126daEe63509728704101FB2084ad0D98C2F12',
+          : DEV_KETL_ATTESTATION_CONTRACT,
         pattern: ethereumAddressRegex,
       },
       currentTokenId: {

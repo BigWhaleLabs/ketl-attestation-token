@@ -31,7 +31,7 @@
     "prettify": "prettier --write .",
     "release": "np",
     "prepublishOnly": "yarn build && yarn tsc --skipLibCheck",
-    "set-current-token-id": "yarn hardhat run --network deploy scripts/setCurrentTokenId.ts"
+    "set-current-token-id": "yarn hardhat run --network deploy scripts/set-current-token-id.ts"
   },
   "devDependencies": {
     "@ethersproject/providers": "^5.7.2",
