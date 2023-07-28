@@ -49,3 +49,4 @@ Also check out the `.env.sample` file for more information.
 - `yarn lint` — runs all the linters
 - `yarn prettify` — prettifies the code in th project
 - `yarn release` — releases the `typechain` directory to NPM
+- `yarn update-merkle-root` — updates the merkle root in the contract
