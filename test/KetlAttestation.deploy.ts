@@ -9,6 +9,7 @@ import {
   getLegacyRegisterEntanglementCalldata,
   getLegacyTokenHolders,
 } from '../scripts/helpers'
+import AttestationType from '../models/AttestationType'
 
 describe('KetlAttestation Deploy Tests', () => {
   it('should be able to deploy KetlAttestation and populate data correctly', async function () {
@@ -76,7 +77,8 @@ describe('KetlAttestation Deploy Tests', () => {
     await this.ketlAttestation.deployed()
 
     const attestationMerkleRoots: { [key: number]: BigNumber } = {}
-    for (const attestationType of [0, 1, 2, 3]) {
+    for (const typeName in AttestationType) {
+      const attestationType = AttestationType[typeName]
       const attestationMerkleRoot =
         await realKetlAttesation.attestationMerkleRoots(attestationType)
       attestationMerkleRoots[attestationType] = attestationMerkleRoot

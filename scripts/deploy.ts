@@ -16,6 +16,7 @@ import {
   getLegacyTokenHolders,
 } from './helpers'
 import { version } from '../package.json'
+import AttestationType from '../models/AttestationType'
 import prompt from 'prompt'
 
 const ethereumAddressRegex = /^0x[a-fA-F0-9]{40}$/
@@ -203,7 +204,8 @@ async function main() {
     )
 
     const attestationMerkleRoots: { [key: number]: BigNumber } = {}
-    for (const attestationType of [0, 1, 2, 3]) {
+    for (const typeName in AttestationType) {
+      const attestationType = AttestationType[typeName]
       const attestationMerkleRoot =
         await oldKetlAttesationContract.attestationMerkleRoots(attestationType)
       attestationMerkleRoots[attestationType] = attestationMerkleRoot
