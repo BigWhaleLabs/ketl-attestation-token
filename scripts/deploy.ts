@@ -198,6 +198,8 @@ async function main() {
   )
 
   if (shouldTransferOldAccounts) {
+    console.log('Starting legacy data transfer...')
+
     const oldKetlAttesationContract = await KetlAttestation__factory.connect(
       oldKetlAttestationContractAddress,
       provider
