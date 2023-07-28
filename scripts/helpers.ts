@@ -90,6 +90,8 @@ const GSNInterface = new ethers.utils.Interface([
   },
 ])
 
+const GSN_RELAYCALL_FUNCTION_SIGNATURE = '0x6ca862e2'
+
 export async function getLegacyTokenHolders(
   address: string,
   provider: Provider,
@@ -132,7 +134,7 @@ export async function getLegacyRegisterEntanglementCalldata(
   }[] = []
   for (const log of logs) {
     const tx = await provider.getTransaction(log.transactionHash)
-    if (tx.data.substring(0, 10) !== '0x6ca862e2') continue // Continue if not GSN relayCall
+    if (tx.data.substring(0, 10) !== GSN_RELAYCALL_FUNCTION_SIGNATURE) continue
     const gsnCalldata = GSNInterface.parseTransaction({ data: tx.data })
     const calldata = KetlAttestationInterface.parseTransaction({
       data: gsnCalldata.args.relayRequest.request.data,
@@ -167,7 +169,7 @@ export async function getLegacyMintCalldata(
   }[] = []
   for (const log of logs) {
     const tx = await provider.getTransaction(log.transactionHash)
-    if (tx.data.substring(0, 10) !== '0x6ca862e2') continue // Continue if not GSN relayCall
+    if (tx.data.substring(0, 10) !== GSN_RELAYCALL_FUNCTION_SIGNATURE) continue
     const gsnCalldata = GSNInterface.parseTransaction({ data: tx.data })
     const calldata = KetlAttestationInterface.parseTransaction({
       data: gsnCalldata.args.relayRequest.request.data,
