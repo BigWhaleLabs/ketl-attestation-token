@@ -90,7 +90,6 @@ const GSNInterface = new ethers.utils.Interface([
   },
 ])
 
-// eslint-disable-next-line import/prefer-default-export
 export async function getLegacyTokenHolders(
   address: string,
   provider: Provider,
