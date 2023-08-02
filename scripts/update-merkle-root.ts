@@ -51,43 +51,22 @@ function generateHashByRecord(
 async function main() {
   // Get the wallet to update the contract with
   const [deployer] = await ethers.getSigners()
-  // Deploy the contract
+  // Log the deployer details
   console.log('Updating contracts with the account:', deployer.address)
   console.log(
     'Account balance:',
     utils.formatEther(await deployer.getBalance())
   )
-  // Check if it's production
-  const promptEnv = await prompt.get({
-    properties: {
-      isProduction: {
-        type: 'boolean',
-        required: true,
-        default: false,
-        description: 'Is it production?',
-      },
-    },
-  })
-  // Get the attestation address
-  const { attestationAddress } = await prompt.get({
-    properties: {
-      attestationAddress: {
-        required: true,
-        default: promptEnv.isProduction
-          ? PROD_KETL_ATTESTATION_CONTRACT
-          : DEV_KETL_ATTESTATION_CONTRACT,
-        conform: utils.isAddress,
-        description: 'Ketl attestation contract address',
-      },
-    },
-  })
-  // Create attestation contract instance
-  const ketlAttestation = KetlAttestation__factory.connect(
-    attestationAddress,
-    deployer
-  )
+
+  // Define the list of contracts
+  const contractAddresses = [
+    PROD_KETL_ATTESTATION_CONTRACT,
+    DEV_KETL_ATTESTATION_CONTRACT,
+  ]
+
   // Create hash function
   const hashFunc = await poseidonHash()
+
   // Read merkleTrees folder
   const ids = readdirSync(resolve(cwd(), 'merkleTrees'))
     .filter((n) => n.includes('.txt'))
@@ -96,6 +75,7 @@ async function main() {
     console.log('No merkleTrees found!')
     return
   }
+
   // Choose what ids to update
   const { promptIds } = await prompt.get({
     properties: {
@@ -107,6 +87,7 @@ async function main() {
       },
     },
   })
+
   // Update the ids
   for (const id of promptIds.split(',')) {
     console.log(`Updating merkleRoot for ${id}`)
@@ -156,27 +137,53 @@ async function main() {
       attestationHashes
     )
 
-    const minimumEntanglementCounts =
-      await ketlAttestation.minimumEntanglementCounts(id)
-
-    const promptMinimumEntanglementCounts = await prompt.get({
+    const { proceed } = await prompt.get({
       properties: {
-        minimumEntanglementCounts: {
-          type: 'number',
+        proceed: {
+          type: 'boolean',
           required: true,
-          default: minimumEntanglementCounts,
-          description: 'Minimum entanglement counts',
+          default: true,
+          description: `⚠️ Last chance to abort! We're updating ${id} on both production and development with merkleRoot ${merkleTreeProof.root} and ${attestationHashes.length} records. Continue?`,
         },
       },
     })
+    if (!proceed) {
+      console.log('Aborting!')
+      return
+    }
 
-    console.log(`Updating merkleRoot to ${merkleTreeProof.root} for ${id}`)
-    await ketlAttestation.setAttestationMerkleRoot(
-      id,
-      merkleTreeProof.root,
-      promptMinimumEntanglementCounts.minimumEntanglementCounts
-    )
-    console.log(`Updated merkleRoot to ${merkleTreeProof.root} for ${id}`)
+    for (const address of contractAddresses) {
+      const ketlAttestation = KetlAttestation__factory.connect(
+        address,
+        deployer
+      )
+
+      const minimumEntanglementCounts =
+        await ketlAttestation.minimumEntanglementCounts(id)
+
+      const promptMinimumEntanglementCounts = await prompt.get({
+        properties: {
+          minimumEntanglementCounts: {
+            type: 'number',
+            required: true,
+            default: minimumEntanglementCounts,
+            description: 'Minimum entanglement counts',
+          },
+        },
+      })
+
+      console.log(
+        `Updating merkleRoot to ${merkleTreeProof.root} for ${id} on contract ${address}`
+      )
+      await ketlAttestation.setAttestationMerkleRoot(
+        id,
+        merkleTreeProof.root,
+        promptMinimumEntanglementCounts.minimumEntanglementCounts
+      )
+      console.log(
+        `Updated merkleRoot to ${merkleTreeProof.root} for ${id} on contract ${address}`
+      )
+    }
   }
   console.log('Done!')
 }
