@@ -96,12 +96,16 @@ async function main() {
 
     let line
     const attestationHashes = [] as string[]
+    const attestationHashesMap = {} as { [key: string]: boolean }
     while ((line = liner.next())) {
       const record = line.toString('utf-8').trim()
       try {
         if (/^#/.test(record) || !record) continue
         const attestationHash = generateHashByRecord(record, hashFunc)
-        if (attestationHash) attestationHashes.push(attestationHash)
+        if (attestationHash) {
+          attestationHashes.push(attestationHash)
+          attestationHashesMap[attestationHash] = true
+        }
       } catch (e) {
         console.error(e, record)
       }
@@ -112,6 +116,12 @@ async function main() {
     writeFileSync(
       resolve(cwd(), 'hashes', `${id}.json`),
       JSON.stringify(attestationHashes.sort()),
+      'utf-8'
+    )
+
+    writeFileSync(
+      resolve(cwd(), 'hashes/maps', `${id}.json`),
+      JSON.stringify(attestationHashesMap),
       'utf-8'
     )
 
