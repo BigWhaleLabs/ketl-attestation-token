@@ -1,15 +1,22 @@
 import {
   ATTESTATION_VERIFIER_CONTRACT_ADDRESS,
   ATTESTOR_PUBLIC_KEY,
+  DEV_KETL_ATTESTATION_CONTRACT,
   GSN_MUMBAI_FORWARDER_CONTRACT_ADDRESS,
   INCREMENTAL_BINARY_TREE_ADDRESS,
   PASSWORD_VERIFIER_CONTRACT_ADDRESS,
   PROD_KETL_ATTESTATION_CONTRACT,
 } from '@big-whale-labs/constants'
+import { BigNumber, utils } from 'ethers'
+import { KetlAttestation, KetlAttestation__factory } from '../typechain'
 import { ethers, run, upgrades } from 'hardhat'
-import { getLegacyTokenHolders } from './helpers'
-import { utils } from 'ethers'
+import {
+  getLegacyMintCalldata,
+  getLegacyRegisterEntanglementCalldata,
+  getLegacyTokenHolders,
+} from './helpers'
 import { version } from '../package.json'
+import AttestationType from '../models/AttestationType'
 import prompt from 'prompt'
 
 const ethereumAddressRegex = /^0x[a-fA-F0-9]{40}$/
@@ -46,11 +53,30 @@ async function main() {
 
   const contractName = 'KetlAttestation'
 
-  const promptResult = await prompt.get({
+  const { isProduction } = await prompt.get({
     properties: {
-      ketlAttestationTokenAddress: {
+      isProduction: { required: true, type: 'boolean', default: false },
+    },
+  })
+
+  const {
+    oldKetlAttestationContractAddress,
+    attestationVerifierAddress,
+    passwordVerifierAddress,
+    attestorPublicKey,
+    forwarder,
+    baseURI,
+    incrementalBinaryTreeLibAddress,
+    shouldTransferOldAccounts,
+    maxEntanglementsPerAttestationType,
+    currentTokenId,
+  } = await prompt.get({
+    properties: {
+      oldKetlAttestationContractAddress: {
         required: true,
-        default: PROD_KETL_ATTESTATION_CONTRACT,
+        default: isProduction
+          ? PROD_KETL_ATTESTATION_CONTRACT
+          : DEV_KETL_ATTESTATION_CONTRACT,
         pattern: ethereumAddressRegex,
       },
       attestationVerifierAddress: {
@@ -86,19 +112,18 @@ async function main() {
         required: true,
         default: true,
       },
+      maxEntanglementsPerAttestationType: {
+        type: 'number',
+        require: true,
+        default: 3,
+      },
+      currentTokenId: {
+        type: 'number',
+        require: true,
+        default: 4,
+      },
     },
   })
-
-  const {
-    ketlAttestationTokenAddress,
-    attestationVerifierAddress,
-    passwordVerifierAddress,
-    attestorPublicKey,
-    forwarder,
-    baseURI,
-    incrementalBinaryTreeLibAddress,
-    shouldTransferOldAccounts,
-  } = promptResult
 
   console.log(`Deploying ${contractName}...`)
   const contractFactory = await ethers.getContractFactory(contractName, {
@@ -107,7 +132,7 @@ async function main() {
     },
   })
 
-  const contract = await upgrades.deployProxy(
+  const newKetlAttestationContract = (await upgrades.deployProxy(
     contractFactory,
     [
       baseURI,
@@ -117,24 +142,28 @@ async function main() {
       passwordVerifierAddress,
       forwarder,
     ],
-    { initializer: 'initializer' }
-  )
+    { initializer: 'initialize', unsafeAllowLinkedLibraries: true }
+  )) as KetlAttestation
 
   console.log(
     'Deploy tx gas price:',
-    utils.formatEther(contract.deployTransaction.gasPrice || 0)
+    utils.formatEther(
+      newKetlAttestationContract.deployTransaction.gasPrice || 0
+    )
   )
   console.log(
     'Deploy tx gas limit:',
-    utils.formatEther(contract.deployTransaction.gasLimit)
+    utils.formatEther(newKetlAttestationContract.deployTransaction.gasLimit)
   )
-  await contract.deployed()
+  await newKetlAttestationContract.deployed()
 
-  const proxyAddress = contract.address
+  const proxyAddress = newKetlAttestationContract.address
   const contractImplementationAddress =
-    await upgrades.erc1967.getImplementationAddress(contract.address)
+    await upgrades.erc1967.getImplementationAddress(
+      newKetlAttestationContract.address
+    )
   const contractAdminAddress = await upgrades.erc1967.getAdminAddress(
-    contract.address
+    newKetlAttestationContract.address
   )
 
   console.log(`${contractName} Proxy address: `, proxyAddress)
@@ -152,14 +181,6 @@ async function main() {
   try {
     await run('verify:verify', {
       address: contractImplementationAddress,
-      constructorArguments: [
-        baseURI,
-        version,
-        attestorPublicKey,
-        attestationVerifierAddress,
-        passwordVerifierAddress,
-        forwarder,
-      ],
     })
   } catch (err) {
     console.error(
@@ -177,13 +198,91 @@ async function main() {
   )
 
   if (shouldTransferOldAccounts) {
-    const [holders, attestationTypes] = await getLegacyTokenHolders(
-      ketlAttestationTokenAddress,
+    console.log('Starting legacy data transfer...')
+
+    const oldKetlAttesationContract = await KetlAttestation__factory.connect(
+      oldKetlAttestationContractAddress,
       provider
     )
-    await contract.legacyBatchMint(holders, attestationTypes)
-    await contract.lockLegacyMint()
+
+    const attestationMerkleRoots: { [key: number]: BigNumber } = {}
+    for (const typeName in AttestationType) {
+      const attestationType = AttestationType[typeName]
+      const attestationMerkleRoot =
+        await oldKetlAttesationContract.attestationMerkleRoots(attestationType)
+      attestationMerkleRoots[attestationType] = attestationMerkleRoot
+      const minimumEntanglementCount =
+        await oldKetlAttesationContract.minimumEntanglementCounts(
+          attestationType
+        )
+      const setAttestationMerkleRootTx =
+        await newKetlAttestationContract.setAttestationMerkleRoot(
+          attestationType,
+          attestationMerkleRoot,
+          minimumEntanglementCount
+        )
+      await setAttestationMerkleRootTx.wait()
+      const setMaxEntanglementsTx =
+        await newKetlAttestationContract.setMaxEntanglementsPerAttestationType(
+          attestationType,
+          maxEntanglementsPerAttestationType
+        )
+      await setMaxEntanglementsTx.wait()
+    }
+
+    const [holders, attestationTypes] = await getLegacyTokenHolders(
+      oldKetlAttestationContractAddress,
+      provider
+    )
+    const batchMintTx = await newKetlAttestationContract.legacyBatchMint(
+      holders,
+      attestationTypes
+    )
+    await batchMintTx.wait()
+    const lockMintTx = await newKetlAttestationContract.lockLegacyMint()
+    await lockMintTx.wait()
     console.log('Completed locking legacy mint')
+
+    const legacyRegisterEntanglementCalldata =
+      await getLegacyRegisterEntanglementCalldata(
+        oldKetlAttestationContractAddress,
+        provider
+      )
+    for (const calldata of legacyRegisterEntanglementCalldata) {
+      const attestationType = BigNumber.from(calldata.input[0])
+      const attestationHash = BigNumber.from(calldata.input[3])
+      const entanglement = BigNumber.from(calldata.input[2])
+      const registerEntanglementTx =
+        await newKetlAttestationContract.legacyRegisterEntanglement(
+          attestationType,
+          attestationHash,
+          entanglement
+        )
+      await registerEntanglementTx.wait()
+    }
+    const lockRegisterEntanglementTx =
+      await newKetlAttestationContract.lockLegacyRegisterEntanglement()
+    await lockRegisterEntanglementTx.wait()
+
+    console.log('Completed legacy register entanglement')
+
+    const legacyMintCalldata = await getLegacyMintCalldata(
+      oldKetlAttestationContractAddress,
+      provider
+    )
+    const nullifiers = legacyMintCalldata.map((calldata) =>
+      BigNumber.from(calldata.input[1])
+    )
+    const setNullifiersTx = await newKetlAttestationContract.legacySetNullifers(
+      nullifiers
+    )
+    await setNullifiersTx.wait()
+    const lockNullifiersTx =
+      await newKetlAttestationContract.lockLegacySetNullifiers()
+    await lockNullifiersTx.wait()
+    console.log('Completed legacy set nullifiers')
+
+    await newKetlAttestationContract.setCurrentTokenId(currentTokenId)
   }
 }
 

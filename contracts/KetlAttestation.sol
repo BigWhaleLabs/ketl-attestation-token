@@ -79,24 +79,31 @@ contract KetlAttestation is
   // Attestations
   uint32 public currentTokenId;
   uint public attestorPublicKey;
-  mapping(uint => uint) public attestationMerkleRoots;
+  mapping(uint attestationType => uint merkleRoot)
+    public attestationMerkleRoots;
   IAttestationCheckerVerifier public attestationCheckerVerifier;
   // Entanglements
-  mapping(uint => IncrementalTreeData) public entanglementsTrees;
-  mapping(uint => uint[]) public entanglements;
-  mapping(uint => mapping(uint => bool)) public entanglementsRoots;
+  mapping(uint attestationType => IncrementalTreeData)
+    public entanglementsTrees;
+  mapping(uint attestationType => uint[]) public entanglements;
+  mapping(uint attestationType => mapping(uint => bool))
+    public entanglementsRoots;
   // Attestations to total number of entanglements
-  mapping(uint => CountersUpgradeable.Counter)
+  mapping(uint attestationHash => CountersUpgradeable.Counter)
     public attestationHashesEntangled;
-  mapping(uint => uint16) public maxEntanglementsPerAttestation;
+  mapping(uint attestationType => uint max)
+    public maxEntanglementsPerAttestationType;
 
-  mapping(uint => CountersUpgradeable.Counter) public entanglementsCounts;
-  mapping(uint => uint16) public minimumEntanglementCounts;
+  mapping(uint attestationType => CountersUpgradeable.Counter)
+    public entanglementsCounts;
+  mapping(uint attestationType => uint16) public minimumEntanglementCounts;
   IPasswordCheckerVerifier public passwordCheckerVerifier;
   // Nullifiers
-  mapping(uint => bool) public nullifiers;
+  mapping(uint nullifier => bool) public nullifiers;
   // Legacy
   bool public legacyMintLocked;
+  bool public legacySetNullifiersLocked;
+  bool public legacyRegisterEntanglementLocked;
 
   // Events
   event EntanglementRegistered(uint attestationType, uint entanglement);
@@ -145,13 +152,13 @@ contract KetlAttestation is
     minimumEntanglementCounts[_id] = _minimumEntanglementCount;
   }
 
-  function setMaxEntanglementsPerAttestation(
-    uint _attestationHash,
-    uint16 _maxEntanglementsPerAttestation
+  function setMaxEntanglementsPerAttestationType(
+    uint _attestationType,
+    uint _maxEntanglementsPerAttestationType
   ) public onlyOwner {
-    maxEntanglementsPerAttestation[
-      _attestationHash
-    ] = _maxEntanglementsPerAttestation;
+    maxEntanglementsPerAttestationType[
+      _attestationType
+    ] = _maxEntanglementsPerAttestationType;
   }
 
   function setCurrentTokenId(uint32 _currentTokenId) public onlyOwner {
@@ -178,6 +185,10 @@ contract KetlAttestation is
     attestorPublicKey = _attestorPublicKey;
   }
 
+  function setVersion(string memory _version) external onlyOwner {
+    version = _version;
+  }
+
   function registerEntanglement(
     uint[2] memory a,
     uint[2][2] memory b,
@@ -197,9 +208,8 @@ contract KetlAttestation is
     );
     // Check if this attestation has already been used
     require(
-      attestationHashesEntangled[attestationHash].current() == 0 ||
-        attestationHashesEntangled[attestationHash].current() <
-        maxEntanglementsPerAttestation[attestationHash],
+      attestationHashesEntangled[attestationHash].current() <
+        maxEntanglementsPerAttestationType[attestationType],
       "Attestation has been used too many times"
     );
     // Check the attestations merkle root
@@ -275,6 +285,40 @@ contract KetlAttestation is
 
   function lockLegacyMint() external onlyOwner {
     legacyMintLocked = true;
+  }
+
+  function legacyRegisterEntanglement(
+    uint attestationType,
+    uint attestationHash,
+    uint entanglement
+  ) external onlyOwner {
+    require(
+      !legacyRegisterEntanglementLocked,
+      "Legacy register entanglement is locked"
+    );
+    attestationHashesEntangled[attestationHash].increment();
+    entanglementsTrees[attestationType].insert(entanglement);
+    entanglements[attestationType].push(entanglement);
+    entanglementsCounts[attestationType].increment();
+    entanglementsRoots[attestationType][
+      entanglementsTrees[attestationType].root
+    ] = true;
+    emit EntanglementRegistered(attestationType, entanglement);
+  }
+
+  function lockLegacyRegisterEntanglement() external onlyOwner {
+    legacyRegisterEntanglementLocked = true;
+  }
+
+  function legacySetNullifers(uint[] calldata _nullifiers) external onlyOwner {
+    require(!legacySetNullifiersLocked, "Legacy set nullifiers is locked");
+    for (uint i = 0; i < _nullifiers.length; i++) {
+      nullifiers[_nullifiers[i]] = true;
+    }
+  }
+
+  function lockLegacySetNullifiers() external onlyOwner {
+    legacySetNullifiersLocked = true;
   }
 
   // Make it soulbound
