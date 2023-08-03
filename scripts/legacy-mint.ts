@@ -9,17 +9,19 @@ import { getLegacyMintCalldata } from './helpers'
 async function main() {
   const provider = ethers.provider
 
+  const devFile = 'legacy/dev-mint.json'
   const devCalldata = await getLegacyMintCalldata(
     DEV_KETL_ATTESTATION_CONTRACT,
     provider
   )
-  fs.writeFileSync('legacy/dev-mint.json', JSON.stringify(devCalldata))
+  fs.writeFileSync(devFile, JSON.stringify(devCalldata))
 
+  const prodFile = 'legacy/prod-mint.json'
   const prodCalldata = await getLegacyMintCalldata(
     PROD_KETL_ATTESTATION_CONTRACT,
     provider
   )
-  fs.writeFileSync('legacy/prod-mint.json', JSON.stringify(prodCalldata))
+  fs.writeFileSync(prodFile, JSON.stringify(prodCalldata))
 }
 
 main().catch((error) => {

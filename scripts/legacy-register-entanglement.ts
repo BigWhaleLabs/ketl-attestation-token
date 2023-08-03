@@ -8,24 +8,19 @@ import { getLegacyRegisterEntanglementCalldata } from './helpers'
 
 async function main() {
   const provider = ethers.provider
-
+  const devFile = 'legacy/dev-register-entanglements.json'
   const devCalldata = await getLegacyRegisterEntanglementCalldata(
     DEV_KETL_ATTESTATION_CONTRACT,
     provider
   )
-  fs.writeFileSync(
-    'legacy/dev-register-entanglements.json',
-    JSON.stringify(devCalldata)
-  )
+  fs.writeFileSync(devFile, JSON.stringify(devCalldata))
 
+  const prodFile = 'legacy/prod-register-entanglements.json'
   const prodCalldata = await getLegacyRegisterEntanglementCalldata(
     PROD_KETL_ATTESTATION_CONTRACT,
     provider
   )
-  fs.writeFileSync(
-    'legacy/prod-register-entanglements.json',
-    JSON.stringify(prodCalldata)
-  )
+  fs.writeFileSync(prodFile, JSON.stringify(prodCalldata))
 }
 
 main().catch((error) => {
